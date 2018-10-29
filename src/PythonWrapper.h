@@ -27,10 +27,11 @@ using namespace boost::python;
 
 typedef struct _PySendResult_ {
     CSendStatus sendStatus;
-    char        msgId[MAX_MESSAGE_ID_LENGTH];
-    long long   offset;
-    const char *GetMsgId(){
-        return (const char *)msgId;
+    char msgId[MAX_MESSAGE_ID_LENGTH];
+    long long offset;
+
+    const char *GetMsgId() {
+        return (const char *) msgId;
     }
 } PySendResult;
 
@@ -54,6 +55,7 @@ int PySetMessageKeys(void *msg, const char *keys);
 int PySetMessageBody(void *msg, const char *body);
 int PySetByteMessageBody(void *msg, const char *body, int len);
 int PySetMessageProperty(void *msg, const char *key, const char *value);
+int PySetMessageDelayTimeLevel(void *msg, int level);
 
 //messageExt
 const char *PyGetMessageTopic(PyMessageExt msgExt);
@@ -69,10 +71,12 @@ int PyDestroyProducer(void *producer);
 int PyStartProducer(void *producer);
 int PyShutdownProducer(void *producer);
 int PySetProducerNameServerAddress(void *producer, const char *namesrv);
+int PySetProducerInstanceName(void *producer, const char *instanceName);
+int PySetProducerSessionCredentials(void *producer, const char *accessKey, const char *secretKey, const char *channel);
 PySendResult PySendMessageSync(void *producer, void *msg);
 
 //sendResult
-const char * PyGetSendResultMsgID(CSendResult &sendResult);
+const char *PyGetSendResultMsgID(CSendResult &sendResult);
 
 //consumer
 void *PyCreatePushConsumer(const char *groupId);
@@ -81,11 +85,13 @@ int PyStartPushConsumer(void *consumer);
 int PyShutdownPushConsumer(void *consumer);
 int PySetPushConsumerNameServerAddress(void *consumer, const char *namesrv);
 int PySubscribe(void *consumer, const char *topic, const char *expression);
-int PyRegisterMessageCallback(void *consumer, PyObject* pCallback);
-int PythonMessageCallBackInner(CPushConsumer * consumer, CMessageExt *msg);
+int PyRegisterMessageCallback(void *consumer, PyObject *pCallback);
+int PythonMessageCallBackInner(CPushConsumer *consumer, CMessageExt *msg);
 int PySetPushConsumerThreadCount(void *consumer, int threadCount);
 int PySetPushConsumerMessageBatchMaxSize(void *consumer, int batchSize);
-
+int PySetPushConsumerInstanceName(void *consumer, const char *instanceName);
+int PySetPushConsumerSessionCredentials(void *consumer, const char *accessKey, const char *secretKey,
+                                     const char *channel);
 #ifdef __cplusplus
 };
 #endif

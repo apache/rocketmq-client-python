@@ -77,7 +77,9 @@ int PySetByteMessageBody(void *msg, const char *body, int len) {
 int PySetMessageProperty(void *msg, const char *key, const char *value) {
     return SetMessageProperty((CMessage *) msg, key, value);
 }
-
+int PySetMessageDelayTimeLevel(void *msg, int level) {
+    return SetDelayTimeLevel((CMessage *) msg, level);
+}
 //messageExt
 const char *PyGetMessageTopic(PyMessageExt msgExt) {
     return GetMessageTopic((CMessageExt *) msgExt.pMessageExt);
@@ -113,6 +115,12 @@ int PyShutdownProducer(void *producer) {
 }
 int PySetProducerNameServerAddress(void *producer, const char *namesrv) {
     return SetProducerNameServerAddress((CProducer *) producer, namesrv);
+}
+int PySetProducerInstanceName(void *producer, const char *instanceName) {
+    return SetProducerInstanceName((CProducer *)producer, instanceName);
+}
+int PySetProducerSessionCredentials(void *producer, const char *accessKey, const char *secretKey, const char *channel) {
+    return SetProducerSessionCredentials((CProducer *)producer, accessKey, secretKey, channel);
 }
 PySendResult PySendMessageSync(void *producer, void *msg) {
     PySendResult ret;
@@ -180,10 +188,17 @@ int PythonMessageCallBackInner(CPushConsumer *consumer, CMessageExt *msg) {
 }
 
 int PySetPushConsumerThreadCount(void *consumer, int threadCount) {
-    return SetPushConsumeThreadCount((CPushConsumer *)consumer, threadCount);
+    return SetPushConsumerThreadCount((CPushConsumer *) consumer, threadCount);
 }
 int PySetPushConsumerMessageBatchMaxSize(void *consumer, int batchSize) {
-    return SetPushConsumeMessageBatchMaxSize((CPushConsumer *)consumer, batchSize);
+    return SetPushConsumerMessageBatchMaxSize((CPushConsumer *) consumer, batchSize);
+}
+int PySetPushConsumerInstanceName(void *consumer, const char *instanceName){
+    return SetPushConsumerInstanceName((CPushConsumer *)consumer, instanceName);
+}
+int PySetPushConsumerSessionCredentials(void *consumer, const char *accessKey, const char *secretKey,
+                                       const char *channel){
+    return SetPushConsumerSessionCredentials((CPushConsumer *)consumer, accessKey, secretKey, channel);
 }
 //version
 const char *PyGetVersion() {
@@ -229,6 +244,7 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("SetMessageBody", PySetMessageBody);
     def("SetByteMessageBody", PySetByteMessageBody);
     def("SetMessageProperty", PySetMessageProperty);
+    def("SetDelayTimeLevel", PySetMessageDelayTimeLevel);
 
     //For MessageExt
     def("GetMessageTopic", PyGetMessageTopic);
@@ -244,6 +260,8 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("StartProducer", PyStartProducer);
     def("ShutdownProducer", PyShutdownProducer);
     def("SetProducerNameServerAddress", PySetProducerNameServerAddress);
+    def("SetProducerInstanceName", PySetProducerInstanceName);
+    def("SetProducerSessionCredentials", PySetProducerSessionCredentials);
     def("SendMessageSync", PySendMessageSync);
 
     //For Consumer
@@ -254,6 +272,8 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("SetPushConsumerNameServerAddress", PySetPushConsumerNameServerAddress);
     def("SetPushConsumerThreadCount", PySetPushConsumerThreadCount);
     def("SetPushConsumerMessageBatchMaxSize", PySetPushConsumerMessageBatchMaxSize);
+    def("SetPushConsumerInstanceName", PySetPushConsumerInstanceName);
+    def("SetPushConsumerSessionCredentials", PySetPushConsumerSessionCredentials);
     def("Subscribe", PySubscribe);
     def("RegisterMessageCallback", PyRegisterMessageCallback);
 
