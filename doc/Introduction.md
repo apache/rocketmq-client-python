@@ -45,7 +45,27 @@
 	
 #### 4. Check verion
 - strings librocketmqclientpython.so |grep PYTHON_CLIENT_VERSION
+----------
 
+##  For the lazy
+
+#### 1. host server
+   * mkdir /code
+#### 2. pull code for python client
+   * cd /code
+   * git clone https://github.com/apache/rocketmq-client-python.git
+#### 3. pull docker building image
+   * in China：docker pull registry.cn-hangzhou.aliyuncs.com/rocketmq-client-python-build/env:1.0
+   * out China：docker pull youlixishi/building-python-client-for-rocketmq
+#### 4. start container
+   * in China：docker run -it --name rocketmq-py-build -v /code:/code --privileged=true registry.cn-hangzhou.aliyuncs.com/rocketmq-client-python-build/env:1.0 bash
+   * out China：docker run -it --name rocketmq-py-build -v /code:/code --privileged=true youlixishi/building-python-client-for-rocketmq bash
+#### 5. login into container
+   * docker exec -it rocketmq-py-build bash
+#### 6. get into code dir in container
+   * cd /code/rocketmq-client-python
+#### 7. exec the building command
+   * make
 ----------
 ## Best practice
 
