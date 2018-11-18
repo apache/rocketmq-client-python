@@ -47,7 +47,7 @@
 - strings librocketmqclientpython.so |grep PYTHON_CLIENT_VERSION
 ----------
 
-##  For the lazy
+##  How to build for the lazy
 
 #### 1. host server
    * mkdir /code
