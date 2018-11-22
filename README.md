@@ -9,7 +9,7 @@ At present, this SDK supports
 * consuming message using push model
 
 ----------
-## How to use
+## Quick Start
 * Step-by-step instruction are provided in [RocketMQ Client Python Introduction](https://github.com/apache/rocketmq-client-python/blob/master/doc/Introduction.md)
 * Consult [RocketMQ Quick Start](https://rocketmq.apache.org/docs/quick-start/) to setup rocketmq broker and nameserver.
 

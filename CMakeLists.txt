@@ -120,21 +120,33 @@ else() #not-HAVE_LIBDL
     message(FATAL_ERROR "Missing library: dl")
 endif()
 
-list(APPEND deplibs rt)
 
-check_library_exists(z compress2 "" HAVE_LIBZ)
-if(HAVE_LIBZ)
-    list(APPEND deplibs z)
-else() #not-HAVE_LIBZ
-    message(FATAL_ERROR "Missing library: z")
+set(BOOST_INCLUDEDIR /usr/local/include/)
+#set(BOOST_INCLUDEDIR C:/boost_1_56_0/)
+set(Boost_USE_STATIC_LIBS    "only find boost static libs"     OFF) # only find static libs
+set(Boost_USE_MULTITHREADED          ON)
+set(Boost_USE_STATIC_RUNTIME         ON)
+if(WIN32)
+    find_package(Boost 1.53 REQUIRED COMPONENTS python)
+else()
+    #find_package(Boost 1.53 REQUIRED COMPONENTS python)
+    set(Boost_LIBRARIES         "boost_python")
 endif()
 
+#if(Boost_FOUND)
+    message(status "** Boost Include dir: ${Boost_INCLUDE_DIR}")
+    message(status "** Boost Libraries dir: ${Boost_LIBRARY_DIRS}")
+    message(status "** Boost Libraries: ${Boost_LIBRARIES}")
+    include_directories(${Boost_INCLUDE_DIRS})
+#endif()
+
 # rocketmq is used on both Linux and Mac
-check_library_exists("rocketmq" CreateMessage "" HAVE_PTHREAD)
-if (HAVE_PTHREAD)
-    list(APPEND deplibs rocketmq)
+check_library_exists("rocketmq" CreateMessage "" HAVE_ROCKETMQ)
+if (HAVE_ROCKETMQ)
+    #list(APPEND deplibs rocketmq)
+    message(status "-----------------------------------Find RocketMQ----------------------------")
 else()
-    message(FATAL_ERROR "Missing library: pthread")
+    message(FATAL_ERROR "Missing library: rocketmq")
 endif()
 # add include dir for bsd (posix uses /usr/include/)
 set(CMAKE_INCLUDE_PATH "${CMAKE_INCLUDE_PATH}:/usr/local/include")
