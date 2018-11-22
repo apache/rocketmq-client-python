@@ -32,6 +32,9 @@ LIST(APPEND SUB_DIRS ${CMAKE_SOURCE_DIR}/src)
 # include_directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${SUB_DIRS})
+include_directories(/usr/local/include/rocketmq)
+include_directories(/usr/include/python2.7)
+
 
 # static
 add_library(rocketmqclientpython_static STATIC ${SRC_FILES})
@@ -46,10 +49,9 @@ add_library(rocketmqclientpython_shared SHARED ${SRC_FILES})
 set_target_properties(rocketmqclientpython_shared PROPERTIES OUTPUT_NAME "rocketmqclientpython")
 #add_dependencies(rocketmqclientpython_shared)
 target_link_libraries(rocketmqclientpython_shared ${deplibs})
-target_link_libraries(rocketmqclientpython_shared)
+target_link_libraries(rocketmqclientpython_shared librocketmq.a)
+target_link_libraries(rocketmqclientpython_shared ${Boost_LIBRARIES})
 
 # install
-install (TARGETS   rocketmqclientpython_static             DESTINATION bin)
-install (DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include)
-install (DIRECTORY ${CMAKE_SOURCE_DIR}/doc/     DESTINATION doc)
+install (TARGETS   rocketmqclientpython_shared             DESTINATION lib)
 

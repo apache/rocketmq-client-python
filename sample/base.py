@@ -21,7 +21,7 @@ from librocketmqclientpython import *
 def initProducer(name):
     print("---------Create Producer---------------")
     producer =CreateProducer(name)
-    SetProducerNameServerAddress(producer,"172.17.0.5:9876")
+    SetProducerNameServerAddress(producer,"172.17.0.2:9876")
     StartProducer(producer)
     return producer
 
