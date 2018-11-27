@@ -102,7 +102,7 @@ include("cmake/ConfigureChecks.cmake")
 # a more elegant way of doing this; with SCons, when you check for the
 # lib, it is automatically passed to the linker.
 set(deplibs)
-#list(APPEND deplibs z)
+
 # For some reason, the check_function_exists macro doesn't detect
 # the inet_aton on some pure Unix platforms (e.g. sunos5). So we
 # need to do a more detailed check and also include some extra deplibs.
@@ -125,14 +125,29 @@ endif ()
 check_library_exists(z compress "" HAVE_LIBZ)
 if (HAVE_LIBZ)
     list(APPEND deplibs z)
-else () #not-HAVE_LIBDL
+else () #not-HAVE_LIBZ
     message(FATAL_ERROR "Missing library: z")
 endif ()
 
-#set(Boost_USE_STATIC_LIBS "only find boost static libs" ON) # only find static libs
-option(Boost_USE_STATIC_LIBS "only find boost static libs" OFF) # only find static libs
-#set(Boost_USE_SHARED_LIBS "only find boost shared libs" ON) # only find shared libs
 
+if (WIN32)
+    find_package(PythonLibs 2.7)
+elseif (APPLE)
+    find_package(PythonLibs 2.7)
+else ()
+    find_package(PythonLibs 2.7)
+endif (WIN32)
+
+if (PYTHONLIBS_FOUND)
+    message(STATUS "** Python Include dir: ${PYTHON_INCLUDE_DIRS}")
+    message(STATUS "** Python Libraries dir: ${PYTHON_LIBRARY_DIRS}")
+    message(STATUS "** Python Libraries: ${PYTHON_LIBRARIES}")
+    include_directories(${PYTHON_INCLUDE_DIRS})
+else ()
+    message(FATAL_ERROR "Missing library: python-devel ")
+endif ()
+
+option(Boost_USE_STATIC_LIBS "only find boost static libs" OFF) # find boost libs
 if (WIN32)
     find_package(Boost REQUIRED COMPONENTS python)
 elseif (APPLE)
@@ -142,39 +157,28 @@ else ()
 endif (WIN32)
 
 if (Boost_FOUND)
-    message(status "** Boost Include dir: ${Boost_INCLUDE_DIR}")
-    message(status "** Boost Libraries dir: ${Boost_LIBRARY_DIRS}")
-    message(status "** Boost Libraries: ${Boost_LIBRARIES}")
+    message(STATUS "** Boost Include dir: ${Boost_INCLUDE_DIR}")
+    message(STATUS "** Boost Libraries dir: ${Boost_LIBRARY_DIRS}")
+    message(STATUS "** Boost Libraries: ${Boost_LIBRARIES}")
     include_directories(${Boost_INCLUDE_DIRS})
 else ()
     message(FATAL_ERROR "Missing library: boost_python")
 endif ()
 
-# rocketmq is used on both Linux and Mac
-#check_library_exists("rocketmq" CreateMessage "" HAVE_ROCKETMQ)
-#if (HAVE_ROCKETMQ)
-#    list(APPEND deplibs rocketmq)
-#    message(status "----------------------------------- Find RocketMQ library----------------------------")
-#else ()
-#    message(FATAL_ERROR "Missing library: rocketmq")
-#endif ()
-
-#set(ROCKETMQ_USE_STATIC_LIBS "only find rocketmq static libs" OFF) # only find static libs
-option(ROCKETMQ_USE_STATIC_LIBS "only find rocketmq static libs" ON) # only find static libs
-#set(ROCKETMQ_USE_SHARED_LIBS "only find rocketmq shared libs" ON) # only find shared libs
+option(ROCKETMQ_USE_STATIC_LIBS "only find rocketmq static libs" ON) #find rocketmq libs
 
 find_package(rocketmq)
 
 if (ROCKETMQ_FOUND)
-    message(status "** Rocketmq Include dir: ${ROCKETMQ_INCLUDE_DIRS}")
-    message(status "** Rocketmq Libraries dir: ${ROCKETMQ_LIBRARY_DIRS}")
-    message(status "** Rocketmq Libraries: ${ROCKETMQ_LIBRARIES}")
+    message(STATUS "** Rocketmq Include dir: ${ROCKETMQ_INCLUDE_DIRS}")
+    message(STATUS "** Rocketmq Libraries dir: ${ROCKETMQ_LIBRARY_DIRS}")
+    message(STATUS "** Rocketmq Libraries: ${ROCKETMQ_LIBRARIES}")
     include_directories(${ROCKETMQ_INCLUDE_DIRS})
 else ()
     message(FATAL_ERROR "Missing library: rocketmq")
 endif ()
 # add include dir for bsd (posix uses /usr/include/)
-set(CMAKE_INCLUDE_PATH "${CMAKE_INCLUDE_PATH}:/usr/local/include")
+set(CMAKE_INCLUDE_PATH "${CMAKE_INCLUDE_PATH}:/usr/include")
 
 # For config.h, set some static values; it may be a good idea to make
 # these values dynamic for non-standard UNIX compilers.
@@ -191,10 +195,5 @@ set(SELECT_TYPE_ARG5 "(struct timeval *)")
 set(STDC_HEADERS 1)
 set(TIME_WITH_SYS_TIME 1)
 set(HAVE_SOCKLEN_T 1)
-
-# For config.h, save the results based on a template (config.h.in).
-# configure_file(res/config.h.in ${root_dir}/config.h)
-
-# add_definitions(-DSYSAPI_UNIX=1 -DHAVE_CONFIG_H)
 
 add_subdirectory(project)

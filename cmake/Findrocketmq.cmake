@@ -69,7 +69,7 @@ FIND_PATH(ROCKETMQ_INCLUDE_DIRS
         ${ROCKETMQ_LIBRARY_DIRS}
         PATH_SUFFIXES rocketmq
         )
-message(status**** "rocketmq include path: ${ROCKETMQ_INCLUDE_DIRS}")
+message(STATUS "***rocketmq include path: ${ROCKETMQ_INCLUDE_DIRS}")
 
 find_library(ROCKETMQ_LIBRARIES
         NAMES rocketmq
@@ -80,12 +80,12 @@ find_library(ROCKETMQ_LIBRARIES
         ${CMAKE_SOURCE_DIR}/win32-deps/lib
         ${ROCKETMQ_LIBRARY_DIRS}
         )
-message(status**** "rocketmq libaray: ${ROCKETMQ_LIBRARIES}")
+message(STATUS "***rocketmq libaray: ${ROCKETMQ_LIBRARIES}")
 
 IF (ROCKETMQ_LIBRARIES AND ROCKETMQ_INCLUDE_DIRS)
     SET(ROCKETMQ_LIBRARIES ${ROCKETMQ_LIBRARIES})
     SET(ROCKETMQ_FOUND "YES")
-    message(status "Find library: rocketmq")
+    message(STATUS "***Find library: rocketmq")
 ELSE (ROCKETMQ_LIBRARIES AND ROCKETMQ_INCLUDE_DIRS)
     SET(ROCKETMQ_FOUND "NO")
     message(FATAL_ERROR "Missing library: rocketmq")
@@ -94,7 +94,7 @@ ENDIF (ROCKETMQ_LIBRARIES AND ROCKETMQ_INCLUDE_DIRS)
 
 IF (ROCKETMQ_FOUND)
     IF (NOT ROCKETMQ_FIND_QUIETLY)
-        MESSAGE(STATUS "Found Rocketmq: ${ROCKETMQ_LIBRARIES}")
+        MESSAGE(STATUS "***Found Rocketmq: ${ROCKETMQ_LIBRARIES}")
     ENDIF (NOT ROCKETMQ_FIND_QUIETLY)
 ELSE (ROCKETMQ_FOUND)
     IF (ROCKETMQ_FIND_REQUIRED)
