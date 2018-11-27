@@ -347,8 +347,6 @@ endmacro()
 
 path_to_have(LIBADVAPI32)
 path_to_have(LIBKERNEL32)
-path_to_have(LIBNSL)
-path_to_have(LIBRT)
 path_to_have(LIBPOSIX4)
 path_to_have(LIBCPOSIX)
 path_to_have(LIBSOCKET)
