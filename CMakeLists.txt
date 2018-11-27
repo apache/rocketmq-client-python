@@ -16,10 +16,12 @@
 #*/
 cmake_minimum_required(VERSION 2.6)
 
+set(CMAKE_MACOSX_RPATH 1)
+
 # CMake complains if we don't have this.
 if (COMMAND cmake_policy)
     cmake_policy(SET CMP0003 NEW)
-endif()
+endif ()
 
 # We're escaping quotes in the Windows version number, because
 # for some reason CMake won't do it at config version 2.4.7
@@ -27,14 +29,15 @@ endif()
 # args are not auto-escaped.
 if (COMMAND cmake_policy)
     cmake_policy(SET CMP0005 NEW)
-endif()
+endif ()
 
 # First, declare project (important for prerequisite checks).
 project(rocketmq-client-python)
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 set(CMAKE_VERBOSE_MAKEFILE 1)
-
+#Path of custom cmake
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 # put binaries in a different dir to make them easier to find.
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
@@ -48,49 +51,49 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #     endif()
 # endif()
 
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release")
-endif()
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release")
+endif ()
 
 set(CXX_FLAGS
- -g
- -Wall
- -Wno-deprecated
- -fPIC
- -fno-strict-aliasing
- -Wno-unused-result
- # -finline-limit=1000
- # -Wextra
- # -pedantic
- # -pedantic-errors
- # -D_FILE_OFFSET_BITS=64
- # -DVALGRIND
- # -DCHECK_PTHREAD_RETURN_VALUE
- # -Werror
- # -Wconversion
- # -Wno-unused-parameter
- # -Wunused-but-set-variable
- # -Wold-style-cast
- # -Woverloaded-virtual
- # -Wpointer-arith
- # -Wshadow
- # -Wwrite-strings
- # -Wdeprecated-declarations
- # -march=native
- # -MMD
- # -std=c++0x
- # -rdynamic
- )
+        #-std=c++0x
+        -g
+        -Wall
+        -Wno-deprecated
+        -fPIC
+        -fno-strict-aliasing
+        -Wno-unused-result
+        # -finline-limit=1000
+        # -Wextra
+        # -pedantic
+        # -pedantic-errors
+        # -D_FILE_OFFSET_BITS=64
+        # -DVALGRIND
+        # -DCHECK_PTHREAD_RETURN_VALUE
+        # -Werror
+        # -Wconversion
+        # -Wno-unused-parameter
+        # -Wunused-but-set-variable
+        # -Wold-style-cast
+        # -Woverloaded-virtual
+        # -Wpointer-arith
+        # -Wshadow
+        # -Wwrite-strings
+        # -Wdeprecated-declarations
+        # -march=native
+        # -MMD
+        # -rdynamic
+        )
 
-if(CMAKE_BUILD_BITS EQUAL 32)
-  list(APPEND CXX_FLAGS "-m32")
-else() #not-condition
-  list(APPEND CXX_FLAGS "-m64")
-endif()
+if (CMAKE_BUILD_BITS EQUAL 32)
+    list(APPEND CXX_FLAGS "-m32")
+else () #not-condition
+    list(APPEND CXX_FLAGS "-m64")
+endif ()
 
 string(REPLACE ";" " " CMAKE_CXX_FLAGS "${CXX_FLAGS}")
 # set(CMAKE_CXX_COMPILER "c++")
-set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -DDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
 include("cmake/ConfigureChecks.cmake")
@@ -99,55 +102,77 @@ include("cmake/ConfigureChecks.cmake")
 # a more elegant way of doing this; with SCons, when you check for the
 # lib, it is automatically passed to the linker.
 set(deplibs)
-
+#list(APPEND deplibs z)
 # For some reason, the check_function_exists macro doesn't detect
 # the inet_aton on some pure Unix platforms (e.g. sunos5). So we
 # need to do a more detailed check and also include some extra deplibs.
-list(APPEND deplibs nsl)
 
 # pthread is used on both Linux and Mac
 check_library_exists("pthread" pthread_create "" HAVE_PTHREAD)
 if (HAVE_PTHREAD)
     list(APPEND deplibs pthread)
-else()
+else ()
     message(FATAL_ERROR "Missing library: pthread")
-endif()
+endif ()
 
 check_library_exists(dl dlopen "" HAVE_LIBDL)
-if(HAVE_LIBDL)
+if (HAVE_LIBDL)
     list(APPEND deplibs dl)
-else() #not-HAVE_LIBDL
+else () #not-HAVE_LIBDL
     message(FATAL_ERROR "Missing library: dl")
-endif()
+endif ()
 
+check_library_exists(z compress "" HAVE_LIBZ)
+if (HAVE_LIBZ)
+    list(APPEND deplibs z)
+else () #not-HAVE_LIBDL
+    message(FATAL_ERROR "Missing library: z")
+endif ()
 
-set(BOOST_INCLUDEDIR /usr/local/include/)
-#set(BOOST_INCLUDEDIR C:/boost_1_56_0/)
-set(Boost_USE_STATIC_LIBS    "only find boost static libs"     OFF) # only find static libs
-set(Boost_USE_MULTITHREADED          ON)
-set(Boost_USE_STATIC_RUNTIME         ON)
-if(WIN32)
-    find_package(Boost 1.53 REQUIRED COMPONENTS python)
-else()
-    #find_package(Boost 1.53 REQUIRED COMPONENTS python)
-    set(Boost_LIBRARIES         "boost_python")
-endif()
+#set(Boost_USE_STATIC_LIBS "only find boost static libs" ON) # only find static libs
+option(Boost_USE_STATIC_LIBS "only find boost static libs" OFF) # only find static libs
+#set(Boost_USE_SHARED_LIBS "only find boost shared libs" ON) # only find shared libs
 
-#if(Boost_FOUND)
+if (WIN32)
+    find_package(Boost REQUIRED COMPONENTS python)
+elseif (APPLE)
+    find_package(Boost REQUIRED COMPONENTS python27)
+else ()
+    find_package(Boost REQUIRED COMPONENTS python)
+endif (WIN32)
+
+if (Boost_FOUND)
     message(status "** Boost Include dir: ${Boost_INCLUDE_DIR}")
     message(status "** Boost Libraries dir: ${Boost_LIBRARY_DIRS}")
     message(status "** Boost Libraries: ${Boost_LIBRARIES}")
     include_directories(${Boost_INCLUDE_DIRS})
-#endif()
+else ()
+    message(FATAL_ERROR "Missing library: boost_python")
+endif ()
 
 # rocketmq is used on both Linux and Mac
-check_library_exists("rocketmq" CreateMessage "" HAVE_ROCKETMQ)
-if (HAVE_ROCKETMQ)
-    #list(APPEND deplibs rocketmq)
-    message(status "----------------------------------- Find RocketMQ library----------------------------")
-else()
+#check_library_exists("rocketmq" CreateMessage "" HAVE_ROCKETMQ)
+#if (HAVE_ROCKETMQ)
+#    list(APPEND deplibs rocketmq)
+#    message(status "----------------------------------- Find RocketMQ library----------------------------")
+#else ()
+#    message(FATAL_ERROR "Missing library: rocketmq")
+#endif ()
+
+#set(ROCKETMQ_USE_STATIC_LIBS "only find rocketmq static libs" OFF) # only find static libs
+option(ROCKETMQ_USE_STATIC_LIBS "only find rocketmq static libs" ON) # only find static libs
+#set(ROCKETMQ_USE_SHARED_LIBS "only find rocketmq shared libs" ON) # only find shared libs
+
+find_package(rocketmq)
+
+if (ROCKETMQ_FOUND)
+    message(status "** Rocketmq Include dir: ${ROCKETMQ_INCLUDE_DIRS}")
+    message(status "** Rocketmq Libraries dir: ${ROCKETMQ_LIBRARY_DIRS}")
+    message(status "** Rocketmq Libraries: ${ROCKETMQ_LIBRARIES}")
+    include_directories(${ROCKETMQ_INCLUDE_DIRS})
+else ()
     message(FATAL_ERROR "Missing library: rocketmq")
-endif()
+endif ()
 # add include dir for bsd (posix uses /usr/include/)
 set(CMAKE_INCLUDE_PATH "${CMAKE_INCLUDE_PATH}:/usr/local/include")
 

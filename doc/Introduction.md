@@ -16,6 +16,7 @@
 * Install compile tools:
     ```
     - sudo yum install make
+    - sudo yum install cmake
     - sudo yum install gcc-c++
     ```
 * Install dependency:
@@ -44,11 +45,23 @@
     ```
    
       
-* Module make and install
-   ```
-    - make
-    - make install
-   ```
+* Make and install module manually
+   
+   1. Using Dynamic Rocketmq and boost python libraries are recommended.
+      ```
+      - mkdir build
+      - cmake ../ -DBoost_USE_STATIC_LIBS=OFF -DROCKETMQ_USE_STATIC_LIBS=OFF
+      - make
+      - make install
+      ```
+      
+   2. Also you can using static libraries.
+      ```
+         - mkdir build
+         - cmake ../ -DBoost_USE_STATIC_LIBS=ON -DROCKETMQ_USE_STATIC_LIBS=ON
+         - make
+         - make install
+      ```
 * Check verion
    ```
    strings librocketmqclientpython.so |grep PYTHON_CLIENT_VERSION

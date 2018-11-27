@@ -33,7 +33,7 @@ print("Consumer Starting.....")
 
 consumer = CreatePushConsumer("awtTest_Producer_Python_Test")
 print(consumer)
-SetPushConsumerNameServerAddress(consumer,"172.17.0.5:9876")
+SetPushConsumerNameServerAddress(consumer,"172.17.0.2:9876")
 SetPushConsumerThreadCount(consumer,1)
 Subscribe(consumer, "T_TestTopic", "*")
 RegisterMessageCallback(consumer,consumerMessage)
