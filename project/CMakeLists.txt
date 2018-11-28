@@ -33,8 +33,8 @@ LIST(APPEND SUB_DIRS ${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${SUB_DIRS})
 #include_directories(/usr/local/include/rocketmq)
-include_directories(/usr/include/python2.7)
-include_directories(/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7)
+#include_directories(/usr/include/python2.7)
+#include_directories(/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7)
 
 
 # static
