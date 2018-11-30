@@ -44,7 +44,7 @@ DEPLOY_BUILD_HOME=${CWD_DIR}/${PACKAGE}
 rm -rf ${CWD_DIR}/tmpbuild
 mkdir -p ${CWD_DIR}/tmpbuild
 cd ${CWD_DIR}/tmpbuild
-if [ $1 = "shared" ]; then
+if [ "$1" = "shared" ]; then
     echo "------------Build Client using dynamic library------------"
     cmake ${CWD_DIR} -DBoost_USE_STATIC_LIBS=OFF -DROCKETMQ_USE_STATIC_LIBS=OFF
     RMQ=$(cat CMakeCache.txt | grep ROCKETMQ_LIBRARIES:FILEPATH= | cut -f2 -d "=")
@@ -66,7 +66,7 @@ cd ${CWD_DIR}
 echo "Package Library...."
 rm -rf   ${DEPLOY_BUILD_HOME}
 mkdir -p ${DEPLOY_BUILD_HOME}/lib
-if [ $1 = "shared" ];then
+if [ "$1" = "shared" ];then
     echo "Copy librocketmq to package...."
     cp -rf ${RMQ} ${DEPLOY_BUILD_HOME}/lib/
     #cp -rf /usr/local/lib/libboost_python.*.so.* ${DEPLOY_BUILD_HOME}/lib/
@@ -77,7 +77,7 @@ cp -rf ${CWD_DIR}/doc 	  ${DEPLOY_BUILD_HOME}/
 cp -rf ${CWD_DIR}/changelog  ${DEPLOY_BUILD_HOME}/
 
 
-cd ${CWD_DIR} && tar -cvzf ./${PACKAGE}-${VERSION}.tar.gz ./${VERSION}  >/dev/null 2>&1
+cd ${CWD_DIR} && tar -cvzf ./${PACKAGE}-${VERSION}.tar.gz ./${PACKAGE}  >/dev/null 2>&1
 rm -rf ${DEPLOY_BUILD_HOME}
 # # ##====================================================================
 cd ${CWD_DIR}/tmpbuild
