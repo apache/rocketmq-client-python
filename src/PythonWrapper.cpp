@@ -133,8 +133,8 @@ PySendResult PySendMessageSync(void *producer, void *msg) {
     return ret;
 }
 
-int PySendMessageSync(void *producer, void *msg) {
-    return SendMessageSync((CProducer *) producer, (CMessage *) msg);
+int PySendMessageOneway(void *producer, void *msg) {
+    return SendMessageOneway((CProducer *) producer, (CMessage *) msg);
 }
 
 //SendResult
