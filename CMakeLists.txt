@@ -203,7 +203,7 @@ set(STDC_HEADERS 1)
 set(TIME_WITH_SYS_TIME 1)
 set(HAVE_SOCKLEN_T 1)
 
-option(TEST "Build test cases" ON)
+option(TEST "Build test cases" OFF)
 
 if (TEST)
     enable_testing()
