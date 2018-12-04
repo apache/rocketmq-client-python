@@ -17,189 +17,62 @@
 
 import __init__
 from librocketmqclientpython import *
+
 import time
+import sys
 
 topic = 'francis-test-topic'
 name_srv = '127.0.0.1:9876'
-
-
-def init_producer():
-    producer = CreateProducer('FrancisProducer')
-    SetProducerNameServerAddress(producer, name_srv)
-    StartProducer(producer)
-    return producer
-
-
-producer = init_producer()
 tag = 'rmq-tag'
-key = 'rmq-key'
+consumer_group = 'francis-test-consumer'
+totalMsg = 0
 
 
-def send_messages_sync(count):
-    for a in range(count):
-        print 'start sending...'
-        body = 'hi rmq, now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print '[RMQ-PRODUCER]start sending...done, msg id = ' + \
-            result.GetMsgId()
+def sigint_handler(signum, frame):
+    global is_sigint_up
+    is_sigint_up = True
+    sys.exit(0)
 
 
-def send_messages_sync_with_map(count):
-    print 'sending message with properties...id, name'
-    for a in range(count):
-        body = 'hi rmq, now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
+def consumer_message(msg):
+    global totalMsg
+    totalMsg += 1
+    print 'total count %d' % totalMsg
+    print 'topic=%s' % GetMessageTopic(msg)
+    print 'tag=%s' % GetMessageTags(msg)
+    print 'body=%s' % GetMessageBody(msg)
+    print 'msg id=%s' % GetMessageId(msg)
 
-        SetMessageProperty(msg, 'name', 'francis')
-        SetMessageProperty(msg, 'id', str(time.time()))
+    print 'map.keys %s' % GetMessageKeys(msg)
 
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print '[RMQ-PRODUCER]start sending...done, msg id = ' + \
-            result.GetMsgId()
-
-
-def send_messages_with_tag_sync(count):
-    print 'sending message with tag...' + tag
-    for a in range(count):
-        body = 'hi rmq, now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
-        SetMessageTags(msg, tag)
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print 'msg id = ' + result.GetMsgId()
+    print 'map.name %s' % GetMessageProperty(msg, 'name')
+    print 'map.id %s' % GetMessageProperty(msg, 'id')
+    return 0
 
 
-def send_messages_with_tag_and_map_sync(count):
-    print 'sending message with tag...' + tag + ' and properties id, name'
-    for a in range(count):
-        body = 'hi rmq, now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
-
-        SetMessageProperty(msg, 'name', 'francis')
-        SetMessageProperty(msg, 'id', str(time.time()))
-
-        SetMessageTags(msg, tag)
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print 'msg id = ' + result.GetMsgId()
+def init_producer(_group, _topic, _tag):
+    consumer = CreatePushConsumer(_group)
+    SetPushConsumerNameServerAddress(consumer, name_srv)
+    SetPushConsumerThreadCount(consumer, 1)
+    Subscribe(consumer, _topic, _tag)
+    RegisterMessageCallback(consumer, consumerMessage)
+    StartPushConsumer(consumer)
+    print 'consumer is ready...'
+    return consumer
 
 
-def send_messages_with_key_sync(count):
-    print 'sending message with keys...' + key
-    for a in range(count):
-        body = 'hi rmq, now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
-        SetMessageKeys(msg, key)
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print 'msg id = ' + result.GetMsgId()
+def start_one_consumer(_group, _topic, _tag):
+    consumer = init_producer(_group, _topic, _tag)
+    i = 1
+    while i <= 10:
+        print 'clock: ' + str(i)
+        i += 1
+        time.sleep(10)
 
-
-def send_messages_with_key_and_map_sync(count):
-    print 'sending message with keys...' + key + ' and properties id, name'
-    for a in range(count):
-        body = 'hi rmq, now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
-        SetMessageKeys(msg, key)
-
-        SetMessageProperty(msg, 'name', 'francis')
-        SetMessageProperty(msg, 'id', str(time.time()))
-
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print 'msg id = ' + result.GetMsgId()
-
-
-def send_messages_with_key_and_tag_sync(count):
-    key = 'rmq-key'
-    print 'sending message with keys and tag...' + key + ', ' + tag
-    for a in range(count):
-        body = 'hi rmq, now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
-        SetMessageKeys(msg, key)
-        SetMessageTags(msg, tag)
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print 'msg id = ' + result.GetMsgId()
-
-
-def send_messages_with_key_and_tag_and_map_sync(count):
-    key = 'rmq-key'
-    print 'sending message with keys and tag...' + \
-        key + ', ' + tag + ' and properties id, name'
-    for a in range(count):
-        body = 'hi rmq, now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
-        SetMessageKeys(msg, key)
-
-        SetMessageProperty(msg, 'name', 'francis')
-        SetMessageProperty(msg, 'id', str(time.time()))
-
-        SetMessageTags(msg, tag)
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print 'msg id = ' + result.GetMsgId()
-
-
-def send_messages_oneway(count):
-    for a in range(count):
-        print 'start sending...'
-        body = 'hi rmq, this is oneway message. now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
-
-        SetMessageKeys(msg, key)
-        SetMessageProperty(msg, 'name', 'francis')
-        SetMessageProperty(msg, 'id', str(time.time()))
-
-        SendMessageOneway(producer, msg)
-        DestroyMessage(msg)
-        print 'send oneway is over'
-
-
-def send_delay_messages(count):
-    key = 'rmq-key'
-    print 'start sending message'
-    tag = 'test'
-    for n in range(count):
-        body = 'hi rmq, now is' + str(time.time())
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
-        SetMessageKeys(msg, key)
-        SetMessageProperty(msg, 'name', 'hello world')
-        SetMessageProperty(msg, 'id', str(time.time()))
-        SetMessageTags(msg, tag)
-        # messageDelayLevel=1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h
-
-        SetDelayTimeLevel(msg, 5)
-
-        print str(msg)
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print 'msg id =' + result.GetMsgId()
+    ShutdownPushConsumer(consumer)
+    DestroyPushConsumer(consumer)
+    print("Consumer Down....")
 
 
 if __name__ == '__main__':
-    # print GetVersion()
-    send_messages_oneway(1)
-    time.sleep(1)
+    start_one_consumer(consumer_group, topic, '*')
