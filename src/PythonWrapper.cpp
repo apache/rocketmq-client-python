@@ -133,6 +133,10 @@ PySendResult PySendMessageSync(void *producer, void *msg) {
     return ret;
 }
 
+int PySendMessageOneway(void *producer, void *msg) {
+    return SendMessageOneway((CProducer *) producer, (CMessage *) msg);
+}
+
 //SendResult
 const char *PyGetSendResultMsgID(CSendResult &sendResult) {
     return (const char *) (sendResult.msgId);
@@ -263,6 +267,7 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("SetProducerInstanceName", PySetProducerInstanceName);
     def("SetProducerSessionCredentials", PySetProducerSessionCredentials);
     def("SendMessageSync", PySendMessageSync);
+    def("SendMessageOneway", PySendMessageOneway);
 
     //For Consumer
     def("CreatePushConsumer", PyCreatePushConsumer, return_value_policy<return_opaque_pointer>());
