@@ -18,7 +18,11 @@ VERSION=1.58.0
 BOOST=boost_1_58_0
 
 if [ ! -d ${HOME}/${BOOST} ]; then
-    wget -O ${HOME}/${BOOST}.tar.gz http://sourceforge.net/projects/boost/files/boost/${VERSION}/${BOOST}.tar.gz
+    if [ -e ${HOME}/${BOOST}.tar.gz ]; then
+        echo "Find Packge ${HOME}/${BOOST}.tar.gz......."
+    else    
+        wget -O ${HOME}/${BOOST}.tar.gz http://sourceforge.net/projects/boost/files/boost/${VERSION}/${BOOST}.tar.gz
+    fi
     if [ $? -ne 0 ];then
         exit 1
     fi
@@ -26,6 +30,8 @@ if [ ! -d ${HOME}/${BOOST} ]; then
     if [ $? -ne 0 ];then
         exit 1
     fi
+else
+    echo "Find Boost Source:${HOME}/${BOOST}, Build and install....."
 fi
 
 cd ${HOME}/${BOOST}
@@ -34,18 +40,14 @@ cd ${HOME}/${BOOST}
 if [ $? -ne 0 ];then
     exit 1
 fi
+echo "Install boost static library...."
 sudo   ./bjam cflags="-fPIC" cxxflags="-fPIC -Wno-unused-local-typedefs -Wno-strict-aliasing" link=static \
        --with-python  \
-       -a install \
-       > ${HOME}/build.log
+       -a install 
 if [ $? -ne 0 ];then
     exit 1
 fi
+echo "Install boost dynamic library....."
 sudo   ./bjam cflags="-fPIC" cxxflags="-fPIC -Wno-unused-local-typedefs -Wno-strict-aliasing" link=shared \
-       --with-python  \
-       -a install \
-       > ${HOME}/build.log
-
-if [ $? != 0 ]; then
-    tail -n 300 ${HOME}/build.log
-fi
+       --with-python 
+       -a install 
