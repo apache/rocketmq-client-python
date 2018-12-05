@@ -21,10 +21,10 @@ from librocketmqclientpython import *
 import time
 import sys
 
-topic = 'francis-test-topic'
+topic = 'test'
 name_srv = '127.0.0.1:9876'
 tag = 'rmq-tag'
-consumer_group = 'francis-test-consumer'
+consumer_group = 'test-consumer-group'
 totalMsg = 0
 
 

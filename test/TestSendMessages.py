@@ -19,12 +19,12 @@ import __init__
 from librocketmqclientpython import *
 import time
 
-topic = 'francis-test-topic'
+topic = 'test'
 name_srv = '127.0.0.1:9876'
 
 
 def init_producer():
-    producer = CreateProducer('FrancisProducer')
+    producer = CreateProducer('TestProducer')
     SetProducerNameServerAddress(producer, name_srv)
     StartProducer(producer)
     return producer
@@ -56,7 +56,7 @@ def send_messages_sync_with_map(count):
         msg = CreateMessage(topic)
         SetMessageBody(msg, body)
 
-        SetMessageProperty(msg, 'name', 'francis')
+        SetMessageProperty(msg, 'name', 'test')
         SetMessageProperty(msg, 'id', str(time.time()))
 
         result = SendMessageSync(producer, msg)
@@ -86,7 +86,7 @@ def send_messages_with_tag_and_map_sync(count):
         msg = CreateMessage(topic)
         SetMessageBody(msg, body)
 
-        SetMessageProperty(msg, 'name', 'francis')
+        SetMessageProperty(msg, 'name', 'test')
         SetMessageProperty(msg, 'id', str(time.time()))
 
         SetMessageTags(msg, tag)
@@ -117,7 +117,7 @@ def send_messages_with_key_and_map_sync(count):
         SetMessageBody(msg, body)
         SetMessageKeys(msg, key)
 
-        SetMessageProperty(msg, 'name', 'francis')
+        SetMessageProperty(msg, 'name', 'test')
         SetMessageProperty(msg, 'id', str(time.time()))
 
         result = SendMessageSync(producer, msg)
@@ -151,7 +151,7 @@ def send_messages_with_key_and_tag_and_map_sync(count):
         SetMessageBody(msg, body)
         SetMessageKeys(msg, key)
 
-        SetMessageProperty(msg, 'name', 'francis')
+        SetMessageProperty(msg, 'name', 'test')
         SetMessageProperty(msg, 'id', str(time.time()))
 
         SetMessageTags(msg, tag)
@@ -169,7 +169,7 @@ def send_messages_oneway(count):
         SetMessageBody(msg, body)
 
         SetMessageKeys(msg, key)
-        SetMessageProperty(msg, 'name', 'francis')
+        SetMessageProperty(msg, 'name', 'test')
         SetMessageProperty(msg, 'id', str(time.time()))
 
         SendMessageOneway(producer, msg)
