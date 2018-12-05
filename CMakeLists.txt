@@ -31,6 +31,13 @@ if (COMMAND cmake_policy)
     cmake_policy(SET CMP0005 NEW)
 endif ()
 
+if (POLICY CMP0048)
+    cmake_policy(SET CMP0048 NEW)
+endif ()
+
+if (POLICY CMP0064)
+    cmake_policy(SET CMP0064 NEW)
+endif ()
 # First, declare project (important for prerequisite checks).
 project(rocketmq-client-python)
 
@@ -56,7 +63,7 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 
 set(CXX_FLAGS
-        #-std=c++0x
+        -std=c++11
         -g
         -Wall
         -Wno-deprecated
@@ -151,7 +158,7 @@ option(Boost_USE_STATIC_LIBS "only find boost static libs" OFF) # find boost lib
 if (WIN32)
     find_package(Boost REQUIRED COMPONENTS python)
 elseif (APPLE)
-    find_package(Boost REQUIRED COMPONENTS python27)
+    find_package(Boost REQUIRED COMPONENTS python)
 else ()
     find_package(Boost REQUIRED COMPONENTS python)
 endif (WIN32)
@@ -195,5 +202,15 @@ set(SELECT_TYPE_ARG5 "(struct timeval *)")
 set(STDC_HEADERS 1)
 set(TIME_WITH_SYS_TIME 1)
 set(HAVE_SOCKLEN_T 1)
+
+option(TEST "Build test cases" OFF)
+
+if (TEST)
+    enable_testing()
+    option(gtest_build_tests OFF)
+    add_subdirectory(third_party/googletest/googletest)
+    include_directories(SYSTEM ${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+    add_subdirectory(unitests)
+endif ()
 
 add_subdirectory(project)
