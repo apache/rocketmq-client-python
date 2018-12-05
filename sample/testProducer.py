@@ -42,6 +42,16 @@ def testSendMssage(producer,topic,key,body):
     DestroyMessage(msg)
     print("Done...............")
 
+def testSendMessageOneway(producer, topic, key, body):
+    print("Starting Sending(Oneway).....")
+    msg = CreateMessage(topic)
+    SetMessageBody(msg, body)
+    SetMessageKeys(msg, key)
+    SetMessageTags(msg, "Send Message Oneway Test.")
+    SendMessageOneway(producer,msg)
+    DestroyMessage(msg)
+    print("Done...............")
+
 def releaseProducer(producer):
     ShutdownProducer(producer)
     DestroyProducer(producer)
@@ -58,5 +68,10 @@ while i < 10000:
     testSendMssage(producer,topic,key,body)
     
     print("Now Send Message:",i)
+
+while i < 10:
+    i += 1
+    testSendMessageOneway(producer, topic, key, body)
+    print("Now Send Message One way:",i)
 
 releaseProducer(producer)
