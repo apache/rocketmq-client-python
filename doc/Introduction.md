@@ -2,7 +2,7 @@
 ## RocketMQ Client Python
 
 ### 1. Python Version
-* Python 2.7.x
+* python 2.7.x
 
 
 ### 2. Dependency
@@ -21,22 +21,22 @@
     ```
 * Install dependency:
  
-    - python-devel
-    ```
-    sudo yum install python-devel
-    ```
-    - python-devel
-        ```
-        sudo yum install zlib-devel
-        ```
-    - boost-python
-    ```
-    sudo sh install_boostpython.sh
-    sudo yum install boost-python-devel
-    ```
-    - [librocketmq](https://github.com/apache/rocketmq-client-cpp), choose one method below:
+    1. python-devel
+       ```
+       sudo yum install python-devel
+       ```
+    
+    2. zlib-devel
+       ```
+       sudo yum install zlib-devel
+       ```
+    3. boost-python
+       ```
+       sudo sh install_boostpython.sh
+       ```
+    4. [librocketmq](https://github.com/apache/rocketmq-client-cpp), choose one method below:
       
-       - make and install the RocketMQ library manually from [here](https://github.com/apache/rocketmq-client-cpp)
+       - make and install the RocketMQ library manually from [rocketmq-client-cpp](https://github.com/apache/rocketmq-client-cpp)
          
        - quick install
        ```
