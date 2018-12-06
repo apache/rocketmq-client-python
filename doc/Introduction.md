@@ -32,7 +32,7 @@
     ```
     3. [librocketmq](https://github.com/apache/rocketmq-client-cpp), choose one method below:
       
-    - make and install the rocketmq library manually from [here](https://github.com/apache/rocketmq-client-cpp)
+    - make and install the RocketMQ library manually from [here](https://github.com/apache/rocketmq-client-cpp)
          
     - quick install
     ```
@@ -46,10 +46,9 @@
    
       
 * Make and install module manually
-   
-   1. Using Dynamic Rocketmq and boost python libraries are recommended.
+   1. Using Dynamic RocketMQ and boost python libraries are recommended.
       ```
-      - mkdir build
+      - mkdir build && cd build
       - cmake ../ -DBoost_USE_STATIC_LIBS=OFF -DROCKETMQ_USE_STATIC_LIBS=OFF
       - make
       - make install
@@ -57,7 +56,7 @@
       
    2. Also you can using static libraries.
       ```
-         - mkdir build
+         - mkdir build & cd build
          - cmake ../ -DBoost_USE_STATIC_LIBS=ON -DROCKETMQ_USE_STATIC_LIBS=ON
          - make
          - make install
