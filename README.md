@@ -10,7 +10,7 @@ At present, this SDK supports
 
 ----------
 ## Quick Start
-* Step-by-step instruction are provided in [RocketMQ Client Python Introduction](https://github.com/apache/rocketmq-client-python/blob/master/doc/Introduction.md)
+* Step-by-step instruction are provided in [RocketMQ Client Python Introduction](https://github.com/apache/rocketmq-client-python/blob/master/doc/Introduction.md).
 * Consult [RocketMQ Quick Start](https://rocketmq.apache.org/docs/quick-start/) to setup rocketmq broker and nameserver.
 
 ----------
