@@ -39,8 +39,8 @@ typedef struct _PyMessageExt_ {
     CMessageExt *pMessageExt;
 } PyMessageExt;
 
-#define PYTHON_CLIENT_VERSION "1.0.0"
-#define PYCLI_BUILD_DATE "16-10-2018"
+#define PYTHON_CLIENT_VERSION "1.2.0"
+#define PYCLI_BUILD_DATE "04-12-2018"
 
 #ifdef __cplusplus
 extern "C" {
