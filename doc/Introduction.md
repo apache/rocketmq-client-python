@@ -30,9 +30,9 @@
     sudo yum install boost-python
     sudo yum install boost-python-devel
     ```
-    3. [librocketmq](https://github.com/apache/rocketmq-client-cpp),choose one method below:
+    3. [librocketmq](https://github.com/apache/rocketmq-client-cpp), choose one method below:
       
-    - make and install the rocketmq library manually,[Here](https://github.com/apache/rocketmq-client-cpp)
+    - make and install the rocketmq library manually from [here](https://github.com/apache/rocketmq-client-cpp)
          
     - quick install
     ```
@@ -86,7 +86,7 @@
   ```
 - producer must invoke following interface:
   ```
-  - producer =CreateProducer("please_rename_unique_group_name");
+  - producer = CreateProducer("please_rename_unique_group_name");
   - SetProducerNameServerAddress(producer,"please_rename_unique_name_server")
   - StartProducer(producer)
   - SendMessageSync(producer,msg)
@@ -105,7 +105,7 @@
   ```
 - pushconsumer must invoke following interface:
   ```
-  - consumer =CreatePushConsumer("please_rename_unique_group_name_1");
+  - consumer = CreatePushConsumer("please_rename_unique_group_name_1");
   - SetPushConsumerNameServerAddress(consumer,"please_rename_unique_name_server")
   - Subscribe(consumer, "your_topic", "*")
   - RegisterMessageCallback(consumer,consumerMessage)
