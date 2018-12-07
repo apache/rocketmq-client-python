@@ -2,14 +2,14 @@
 ## RocketMQ Client Python
 
 ### 1. Python Version
-* Python 2.7.x
+* python 2.7.x
 
 
 ### 2. Dependency
 
 * [librocketmq](https://github.com/apache/rocketmq-client-cpp)	
 * python-devel 2.7.x
-* boost-python 1.53.0+
+* boost-python 1.58.0
       
 ### 3. Build and Install
 #### Linux Platform
@@ -22,27 +22,31 @@
 * Install dependency:
  
     1. python-devel
-    ```
-    sudo yum install python-devel
-    ```
-    2. boost-python
-    ```
-    sudo yum install boost-python
-    sudo yum install boost-python-devel
-    ```
-    3. [librocketmq](https://github.com/apache/rocketmq-client-cpp), choose one method below:
+       ```
+       sudo yum install python-devel
+       ```
+    
+    2. zlib-devel
+       ```
+       sudo yum install zlib-devel
+       ```
+    3. boost-python
+       ```
+       sudo sh install_boostpython.sh
+       ```
+    4. [librocketmq](https://github.com/apache/rocketmq-client-cpp), choose one method below:
       
-    - make and install the RocketMQ library manually from [here](https://github.com/apache/rocketmq-client-cpp)
+       - make and install the RocketMQ library manually from [rocketmq-client-cpp](https://github.com/apache/rocketmq-client-cpp)
          
-    - quick install
-    ```
-    mkdir rocketmqlib
-    cd rocketmqlib
-    wget https://opensource-rocketmq-client.oss-cn-hangzhou.aliyuncs.com/cpp-client/linux/1.0.2/RHEL7.x/librocketmq.tar.gz
-    tar -xzf librocketmq.tar.gz
-    sudo cp librocketmq.so librocketmq.a /usr/local/lib/
-    sudo cp -r rocketmq /usr/local/include/
-    ```
+       - quick install
+       ```
+       mkdir rocketmqlib
+       cd rocketmqlib
+       wget https://opensource-rocketmq-client.oss-cn-hangzhou.aliyuncs.com/cpp-client/linux/1.0.2/RHEL7.x/librocketmq.tar.gz
+       tar -xzf librocketmq.tar.gz
+       sudo cp librocketmq.so librocketmq.a /usr/local/lib/
+       sudo cp -r rocketmq /usr/local/include/
+       ```
    
       
 * Make and install module manually
