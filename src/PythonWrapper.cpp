@@ -116,6 +116,9 @@ int PyShutdownProducer(void *producer) {
 int PySetProducerNameServerAddress(void *producer, const char *namesrv) {
     return SetProducerNameServerAddress((CProducer *) producer, namesrv);
 }
+int PySetProducerNameServerDomain(void *producer, const char *domain) {
+    return SetProducerNameServerDomain(CProducer *) producer, domain);
+}
 int PySetProducerInstanceName(void *producer, const char *instanceName) {
     return SetProducerInstanceName((CProducer *)producer, instanceName);
 }
@@ -264,6 +267,7 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("StartProducer", PyStartProducer);
     def("ShutdownProducer", PyShutdownProducer);
     def("SetProducerNameServerAddress", PySetProducerNameServerAddress);
+    def("SetProducerNameServerDomain", PySetProducerNameServerDomain);
     def("SetProducerInstanceName", PySetProducerInstanceName);
     def("SetProducerSessionCredentials", PySetProducerSessionCredentials);
     def("SendMessageSync", PySendMessageSync);

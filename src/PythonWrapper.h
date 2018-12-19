@@ -85,6 +85,7 @@ int PyDestroyPushConsumer(void *consumer);
 int PyStartPushConsumer(void *consumer);
 int PyShutdownPushConsumer(void *consumer);
 int PySetPushConsumerNameServerAddress(void *consumer, const char *namesrv);
+int PySetProducerNameServerDomain(void *producer, const char *domain);
 int PySubscribe(void *consumer, const char *topic, const char *expression);
 int PyRegisterMessageCallback(void *consumer, PyObject *pCallback);
 int PythonMessageCallBackInner(CPushConsumer *consumer, CMessageExt *msg);
