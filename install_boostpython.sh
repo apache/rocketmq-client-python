@@ -41,13 +41,17 @@ if [ $? -ne 0 ];then
     exit 1
 fi
 echo "Install boost static library...."
-sudo   ./bjam cflags="-fPIC" cxxflags="-fPIC -Wno-unused-local-typedefs -Wno-strict-aliasing" link=static \
-       --with-python  \
+sudo   ./b2 cflags="-fPIC" cxxflags="-fPIC -Wno-unused-local-typedefs -Wno-strict-aliasing" link=static \
+       runtime-link=static --with-python  \
        -a install 
 if [ $? -ne 0 ];then
     exit 1
 fi
 echo "Install boost dynamic library....."
-sudo   ./bjam cflags="-fPIC" cxxflags="-fPIC -Wno-unused-local-typedefs -Wno-strict-aliasing" link=shared \
-       --with-python 
-       -a install 
+sudo   ./b2 cflags="-fPIC" cxxflags="-fPIC -Wno-unused-local-typedefs -Wno-strict-aliasing" link=shared \
+       runtime-link=shared --with-python \
+       -a install
+if [ $? -ne 0 ];then
+    exit 1
+fi
+echo "Finish build boost library."
