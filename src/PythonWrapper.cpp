@@ -34,18 +34,31 @@ map<CPushConsumer *, PyObject *> g_CallBackMap;
 
 class PyThreadStateLock {
 public:
-    PyThreadStateLock(void) {
+    PyThreadStateLock() {
         state = PyGILState_Ensure();
     }
 
-    ~PyThreadStateLock(void) {
-        if (state == PyGILState_LOCKED) {
-            PyGILState_Release(state);
-        }
+    ~PyThreadStateLock() {
+        // NOTE: must paired with PyGILState_Ensure, otherwise it will cause deadlock!!!
+        PyGILState_Release(state);
     }
 
 private:
     PyGILState_STATE state;
+};
+
+class PyThreadStateUnlock {
+public:
+    PyThreadStateUnlock() : _save(NULL) {
+        Py_UNBLOCK_THREADS
+    }
+
+    ~PyThreadStateUnlock() {
+        Py_BLOCK_THREADS
+    }
+
+private:
+    PyThreadState *_save;
 };
 
 #ifdef __cplusplus
@@ -146,9 +159,7 @@ const char *PyGetSendResultMsgID(CSendResult &sendResult) {
 }
 //consumer
 void *PyCreatePushConsumer(const char *groupId) {
-    //Py_Initialize();
-    PyEval_InitThreads();
-//    PyEval_ReleaseThread(PyThreadState_Get());
+    PyEval_InitThreads();  // ensure create GIL, for call Python callback from C.
     return (void *) CreatePushConsumer(groupId);
 }
 int PyDestroyPushConsumer(void *consumer) {
@@ -158,10 +169,8 @@ int PyStartPushConsumer(void *consumer) {
     return StartPushConsumer((CPushConsumer *) consumer);
 }
 int PyShutdownPushConsumer(void *consumer) {
-    int ret = ShutdownPushConsumer((CPushConsumer *) consumer);
-    //PyGILState_Ensure();
-    //Py_Finalize();
-    return ret;
+    PyThreadStateUnlock PyThreadUnlock;  // ShutdownPushConsumer is a block call, ensure thread don't hold GIL.
+    return ShutdownPushConsumer((CPushConsumer *) consumer);
 }
 int PySetPushConsumerNameServerAddress(void *consumer, const char *namesrv) {
     return SetPushConsumerNameServerAddress((CPushConsumer *) consumer, namesrv);
@@ -212,7 +221,7 @@ int PySetPushConsumerSessionCredentials(void *consumer, const char *accessKey, c
 }
 
 //push consumer
-int PySetPullConsumerNameServerDomain(void *consumer, const char *domain){
+int PySetPullConsumerNameServerDomain(void *consumer, const char *domain) {
     return SetPullConsumerNameServerDomain((CPullConsumer *) consumer, domain);
 }
 //version
