@@ -2,7 +2,7 @@
 import ctypes
 from collections import namedtuple
 
-from .ffi import dll, _CSendResult, MSG_CALLBACK_FUNC
+from .ffi import dll, _CSendResult, MSG_CALLBACK_FUNC, _CMessageQueue, _CPullStatus
 
 
 SendResult = namedtuple('SendResult', ['status', 'msg_id', 'offset'])
@@ -131,3 +131,48 @@ class PushConsumer(object):
 
     def set_instance_name(self, name):
         return dll.SetPushConsumerInstanceName(self._handle, name.encode('utf-8'))
+
+
+class PullConsumer(object):
+    def __init__(self, group_id):
+        self._handle = dll.CreatePullConsumer(group_id.encode('utf-8'))
+
+    def __del__(self):
+        if self._handle is not None:
+            dll.DestroyPullConsumer(self._handle)
+
+    def start(self):
+        return dll.StartPullConsumer(self._handle)
+
+    def shutdown(self):
+        return dll.ShutdownPullConsumer(self._handle)
+
+    def set_group(self, group_id):
+        return dll.SetPullConsumerGroupID(group_id.encode('utf-8'))
+
+    def set_namesrv_addr(self, addr):
+        return dll.SetPullConsumerNameServerAddress(self._handle, addr.encode('utf-8'))
+
+    def set_namesrv_domain(self, domain):
+        return dll.SetPullConsumerNameServerDomain(self._handle, domain.encode('utf-8'))
+
+    def set_session_credentials(self, access_key, access_secret, channel):
+        return dll.SetPullConsumerSessionCredentials(self._handle, access_key.encode('utf-8'), access_secret.encode('utf-8'), channel.encode('utf-8'))
+
+    def pull(self, topic):
+        message_queue = ctypes.POINTER(_CMessageQueue)()
+        queue_size = ctypes.c_int()
+        dll.FetchSubscriptionMessageQueues(self._handle, topic.encode('utf-8'), ctypes.pointer(message_queue), ctypes.pointer(queue_size))
+        for i in range(int(queue_size.value)):
+            tmp_offset = ctypes.c_longlong()
+            while True:
+                pull_res = dll.Pull(self._handle, ctypes.pointer(message_queue[i]), b'*', tmp_offset, 32)
+                if pull_res.pullStatus != _CPullStatus.BROKER_TIMEOUT:
+                    tmp_offset = pull_res.nextBeginOffset
+                if pull_res.pullStatus == _CPullStatus.FOUND:
+                    for i in range(int(pull_res.size)):
+                        yield pull_res.msgFoundList[i]
+                elif pull_res.pullStatus == _CPullStatus.NO_MATCHED_MSG:
+                    break
+                dll.ReleasePullResult(pull_res)
+        dll.ReleaseSubscriptionMessageQueue(message_queue)

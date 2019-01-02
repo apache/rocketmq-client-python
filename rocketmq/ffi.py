@@ -86,7 +86,7 @@ class _CPullResult(Structure):
         ('nextBeginOffset', c_longlong),
         ('minOffset', c_longlong),
         ('maxOffset', c_longlong),
-        ('msgFoundList', c_void_p),
+        ('msgFoundList', POINTER(c_void_p)),
         ('size', c_int),
         ('pData', c_void_p),
     ]
