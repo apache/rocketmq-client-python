@@ -36,6 +36,29 @@ class Message(object):
         return self._handle
 
 
+def maybe_decode(val):
+    if val:
+        return val.decode('utf-8')
+
+
+class RecvMessage(object):
+    def __init__(self, handle):
+        self.topic = maybe_decode(dll.GetMessageTopic(handle))
+        self.tags = maybe_decode(dll.GetMessageTags(handle))
+        self.keys = maybe_decode(dll.GetMessageKeys(handle))
+        self.body = dll.GetMessageBody(handle)
+        self.id = maybe_decode(dll.GetMessageId(handle))
+        self.delay_time_level = dll.GetMessageDelayTimeLevel(handle)
+        self.queue_id = dll.GetMessageQueueId(handle)
+        self.reconsume_times = dll.GetMessageReconsumeTimes(handle)
+        self.store_size = dll.GetMessageStoreSize(handle)
+        self.born_timestamp = dll.GetMessageBornTimestamp(handle)
+        self.store_timestamp = dll.GetMessageStoreTimestamp(handle)
+        self.queue_offset = dll.GetMessageQueueOffset(handle)
+        self.commit_log_offset = dll.GetMessageCommitLogOffset(handle)
+        self.prepared_transaction_offset = dll.GetMessagePreparedTransactionOffset(handle)
+
+
 class Producer(object):
     def __init__(self, group_id):
         self._handle = dll.CreateProducer(group_id.encode('utf-8'))
@@ -171,7 +194,7 @@ class PullConsumer(object):
                     tmp_offset = pull_res.nextBeginOffset
                 if pull_res.pullStatus == _CPullStatus.FOUND:
                     for i in range(int(pull_res.size)):
-                        yield pull_res.msgFoundList[i]
+                        yield RecvMessage(pull_res.msgFoundList[i])
                 elif pull_res.pullStatus == _CPullStatus.NO_MATCHED_MSG:
                     break
                 dll.ReleasePullResult(pull_res)
