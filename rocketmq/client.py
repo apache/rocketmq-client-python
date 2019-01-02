@@ -2,7 +2,7 @@
 import ctypes
 from collections import namedtuple
 
-from .ffi import dll, _CSendResult
+from .ffi import dll, _CSendResult, MSG_CALLBACK_FUNC
 
 
 SendResult = namedtuple('SendResult', ['status', 'msg_id', 'offset'])
@@ -66,8 +66,10 @@ class Producer(object):
 
 
 class PushConsumer(object):
-    def __init__(self, group_id):
+    def __init__(self, group_id, orderly=False):
         self._handle = dll.CreatePushConsumer(group_id.encode('utf-8'))
+        self._orderly = orderly
+        self._register_callback(MSG_CALLBACK_FUNC(self.__on_message))
 
     def __del__(self):
         if self._handle is not None:
@@ -94,17 +96,21 @@ class PushConsumer(object):
     def subscribe(self, topic, expression):
         return dll.Subscribe(self._handle, topic.encode('utf-8'), expression.encode('utf-8'))
 
-    def register_callback(self, callback, orderly=False):
-        from .ffi import MSG_CALLBACK_FUNC
+    def __on_message(self, consumer, msg):
+        return self.on_message(msg)
 
-        if orderly:
+    def on_message(self, msg):
+        raise NotImplementedError
+
+    def _register_callback(self, callback):
+        if self._orderly:
             register_func = dll.RegisterMessageCallbackOrderly
         else:
             register_func = dll.RegisterMessageCallback
         return register_func(self._handle, MSG_CALLBACK_FUNC(callback))
 
-    def unregister_callback(self, orderly=False):
-        if orderly:
+    def _unregister_callback(self):
+        if self._orderly:
             return dll.UnregisterMessageCallbackOrderly(self._handle)
         return dll.UnregisterMessageCallback(self._handle)
 
