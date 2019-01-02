@@ -1,12 +1,59 @@
 # -*- coding: utf-8 -*-
 import os
 import ctypes
-from ctypes import c_char, c_char_p, c_void_p, c_int, c_longlong, Structure, POINTER
+from ctypes import c_char, c_char_p, c_void_p, c_int, c_long, c_longlong, Structure, POINTER
+from enum import IntEnum
 
 
 CURR_DIR = os.path.abspath(os.path.dirname(__file__))
 DYLIB_PATH = os.path.join(CURR_DIR, 'librocketmq.dylib')
 dll = ctypes.cdll.LoadLibrary(DYLIB_PATH)
+
+
+class CtypesEnum(IntEnum):
+    """A ctypes-compatible IntEnum superclass."""
+    @classmethod
+    def from_param(cls, obj):
+        return int(obj)
+
+
+class _CStatus(CtypesEnum):
+    OK = 0
+    NULL_POINTER = 1
+    MALLOC_FAILED = 2
+    PRODUCER_ERROR_CODE_START = 10
+    PRODUCER_START_FAILED = 10
+    PRODUCER_SEND_SYNC_FAILED = 11
+    PRODUCER_SEND_ONEWAY_FAILED = 12
+    PRODUCER_SEND_ORDERLY_FAILED = 13
+    PUSHCONSUMER_ERROR_CODE_START = 20
+    PUSHCONSUMER_START_FAILED = 20
+    PULLCONSUMER_ERROR_CODE_START = 30
+    PULLCONSUMER_START_FAILED = 30
+    PULLCONSUMER_FETCH_MQ_FAILED = 31
+    PULLCONSUMER_FETCH_MESSAGE_FAILED = 32
+
+
+class _CLogLevel(CtypesEnum):
+    FATAL = 1
+    ERROR = 2
+    WARN = 3
+    INFO = 4
+    DEBUG = 5
+    TRACE = 6
+    LEVEL_NUM = 7
+
+
+class _CMessageModel(CtypesEnum):
+    BROADCASTING = 0
+    CLUSTERING = 1
+
+
+class _CSendStatus(CtypesEnum):
+    OK = 0
+    FLUSH_DISK_TIMEOUT = 1
+    FLUSH_SLAVE_TIMEOUT = 2
+    SLAVE_NOT_AVAILABLE = 3
 
 
 class _CSendResult(Structure):
@@ -23,6 +70,14 @@ class _CMessageQueue(Structure):
         ('brokerName', c_char * 256),
         ('queueId', c_int),
     ]
+
+
+class _CPullStatus(CtypesEnum):
+    FOUND = 0
+    NO_NEW_MSG = 1
+    NO_MATCHED_MSG = 2
+    OFFSET_ILLEGAL = 3
+    BROKER_TIMEOUT = 4
 
 
 class _CPullResult(Structure):
@@ -128,6 +183,10 @@ dll.SetPullConsumerSessionCredentials.argtypes = [c_void_p, c_char_p, c_char_p, 
 dll.SetPullConsumerSessionCredentials.restype = c_int
 dll.SetPullConsumerLogPath.argtypes = [c_void_p, c_char_p]
 dll.SetPullConsumerLogPath.restype = c_int
+dll.SetPullConsumerLogFileNumAndSize.argtypes = [c_void_p, c_int, c_long]
+dll.SetPullConsumerLogFileNumAndSize.restype = c_int
+dll.SetPullConsumerLogLevel.argtypes = [c_void_p, _CLogLevel]
+dll.SetPullConsumerLogLevel.restype = c_int
 dll.FetchSubscriptionMessageQueues.argtypes = [c_void_p, c_char_p, POINTER(POINTER(_CMessageQueue)), POINTER(c_int)]
 dll.FetchSubscriptionMessageQueues.restype = c_int
 dll.ReleaseSubscriptionMessageQueue.argtypes = [POINTER(_CMessageQueue)]
@@ -150,3 +209,31 @@ dll.SetPushConsumerGroupID.argtypes = [c_void_p, c_char_p]
 dll.SetPushConsumerGroupID.restype = c_int
 dll.GetPushConsumerGroupID.argtypes = [c_void_p]
 dll.GetPushConsumerGroupID.restype = c_char_p
+dll.SetPushConsumerNameServerAddress.argtypes = [c_void_p, c_char_p]
+dll.SetPushConsumerNameServerAddress.restype = c_int
+dll.SetPushConsumerNameServerDomain.argtypes = [c_void_p, c_char_p]
+dll.SetPushConsumerNameServerDomain.restype = c_int
+dll.Subscribe.argtypes = [c_void_p, c_char_p, c_char_p]
+dll.Subscribe.restype = c_int
+dll.RegisterMessageCallbackOrderly.argtypes = [c_void_p, MSG_CALLBACK_FUNC]
+dll.RegisterMessageCallbackOrderly.restype = c_int
+dll.RegisterMessageCallback.argtypes = [c_void_p, MSG_CALLBACK_FUNC]
+dll.RegisterMessageCallback.restype = c_int
+dll.UnregisterMessageCallbackOrderly.argtypes = [c_void_p]
+dll.UnregisterMessageCallbackOrderly.restype = c_int
+dll.UnregisterMessageCallback.argtypes = [c_void_p]
+dll.UnregisterMessageCallback.restype = c_int
+dll.SetPushConsumerThreadCount.argtypes = [c_void_p, c_int]
+dll.SetPushConsumerThreadCount.restype = c_int
+dll.SetPushConsumerMessageBatchMaxSize.argtypes = [c_void_p, c_int]
+dll.SetPushConsumerMessageBatchMaxSize.restype = c_int
+dll.SetPushConsumerInstanceName.argtypes = [c_void_p, c_char_p]
+dll.SetPushConsumerInstanceName.restype = c_int
+dll.SetPushConsumerSessionCredentials.argtypes = [c_void_p, c_char_p, c_char_p, c_char_p]
+dll.SetPushConsumerSessionCredentials.restype = c_int
+dll.SetPushConsumerLogPath.argtypes = [c_void_p, c_char_p]
+dll.SetPushConsumerLogPath.restype = c_int
+dll.SetPushConsumerLogFileNumAndSize.argtypes = [c_void_p, c_int, c_long]
+dll.SetPushConsumerLogFileNumAndSize.restype = c_int
+dll.SetPushConsumerLogLevel.argtypes = [c_void_p, _CLogLevel]
+dll.SetPushConsumerLogLevel.restype = c_int
