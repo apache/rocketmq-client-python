@@ -92,6 +92,11 @@ class _CPullResult(Structure):
     ]
 
 
+class _CConsumeStatus(CtypesEnum):
+    CONSUME_SUCCESS = 0
+    RECONSUME_LATER = 1
+
+
 # Message
 dll.CreateMessage.argtypes = [c_char_p]
 dll.CreateMessage.restype = c_void_p
@@ -99,6 +104,8 @@ dll.DestroyMessage.argtypes = [c_void_p]
 dll.DestroyMessage.restype = c_int
 dll.SetMessageKeys.argtypes = [c_void_p, c_char_p]
 dll.SetMessageKeys.restype = c_int
+dll.SetMessageTags.argtypes = [c_void_p, c_char_p]
+dll.SetMessageTags.restype = c_int
 dll.SetMessageBody.argtypes = [c_void_p, c_char_p]
 dll.SetMessageBody.restype = c_int
 dll.SetByteMessageBody.argtypes = [c_void_p, c_char_p, c_int]

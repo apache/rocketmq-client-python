@@ -19,11 +19,17 @@ class Message(object):
     def set_keys(self, keys):
         return dll.SetMessageKeys(self._handle, keys.encode('utf-8'))
 
+    def set_tags(self, tags):
+        return dll.SetMessageTags(self._handle, tags.encode('utf-8'))
+
     def set_body(self, body):
         return dll.SetMessageBody(self._handle, body.encode('utf-8'))
 
     def set_property(self, key, value):
         return dll.SetMessageProperty(self._handle, key.encode('utf-8'), value.encode('utf-8'))
+
+    def set_delay_time_level(self, delay_time_level):
+        return dll.SetDelayTimeLevel(self._handle, delay_time_level)
 
     @property
     def _as_parameter_(self):
@@ -69,17 +75,16 @@ class PushConsumer(object):
     def __init__(self, group_id, orderly=False):
         self._handle = dll.CreatePushConsumer(group_id.encode('utf-8'))
         self._orderly = orderly
-        self._register_callback(MSG_CALLBACK_FUNC(self.__on_message))
 
     def __del__(self):
         if self._handle is not None:
             dll.DestroyPushConsumer(self._handle)
 
     def start(self):
-        dll.StartPushConsumer(self._handle)
+        return dll.StartPushConsumer(self._handle)
 
     def shutdown(self):
-        dll.ShutdownPushConsumer(self._handle)
+        return dll.ShutdownPushConsumer(self._handle)
 
     def set_group(self, group_id):
         return dll.SetPushConsumerGroupID(group_id.encode('utf-8'))
@@ -93,14 +98,18 @@ class PushConsumer(object):
     def set_session_credentials(self, access_key, access_secret, channel):
         return dll.SetPushConsumerSessionCredentials(self._handle, access_key.encode('utf-8'), access_secret.encode('utf-8'), channel.encode('utf-8'))
 
-    def subscribe(self, topic, expression):
-        return dll.Subscribe(self._handle, topic.encode('utf-8'), expression.encode('utf-8'))
+    def subscribe(self, topic, callback, expression='*'):
+        from .ffi import _CConsumeStatus
 
-    def __on_message(self, consumer, msg):
-        return self.on_message(msg)
+        def _on_message(consumer, msg):
+            try:
+                callback(msg)
+            except Exception:
+                return _CConsumeStatus.CONSUME_SUCCESS.value
+            return _CConsumeStatus.RECONSUME_LATER.value
 
-    def on_message(self, msg):
-        raise NotImplementedError
+        dll.Subscribe(self._handle, topic.encode('utf-8'), expression.encode('utf-8'))
+        self._register_callback(MSG_CALLBACK_FUNC(_on_message))
 
     def _register_callback(self, callback):
         if self._orderly:
