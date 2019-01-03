@@ -213,7 +213,7 @@ class PullConsumer(object):
             channel.encode('utf-8')
         ))
 
-    def pull(self, topic):
+    def pull(self, topic, expression='*', max_num=32):
         message_queue = ctypes.POINTER(_CMessageQueue)()
         queue_size = ctypes.c_int()
         ffi_check(dll.FetchSubscriptionMessageQueues(
@@ -225,7 +225,13 @@ class PullConsumer(object):
         for i in range(int(queue_size.value)):
             tmp_offset = ctypes.c_longlong()
             while True:
-                pull_res = dll.Pull(self._handle, ctypes.pointer(message_queue[i]), b'*', tmp_offset, 32)
+                pull_res = dll.Pull(
+                    self._handle,
+                    ctypes.pointer(message_queue[i]),
+                    expression.encode('utf-8'),
+                    tmp_offset,
+                    max_num,
+                )
                 if pull_res.pullStatus != _CPullStatus.BROKER_TIMEOUT:
                     tmp_offset = pull_res.nextBeginOffset
                 if pull_res.pullStatus == _CPullStatus.FOUND:
