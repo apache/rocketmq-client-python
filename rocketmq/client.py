@@ -47,8 +47,8 @@ def maybe_decode(val):
 class RecvMessage(object):
     def __init__(self, handle):
         self.topic = maybe_decode(dll.GetMessageTopic(handle))
-        self.tags = maybe_decode(dll.GetMessageTags(handle))
-        self.keys = maybe_decode(dll.GetMessageKeys(handle))
+        self.tags = dll.GetMessageTags(handle)
+        self.keys = dll.GetMessageKeys(handle)
         self.body = dll.GetMessageBody(handle)
         self.id = maybe_decode(dll.GetMessageId(handle))
         self.delay_time_level = dll.GetMessageDelayTimeLevel(handle)
@@ -131,11 +131,17 @@ class PushConsumer(object):
 
     def subscribe(self, topic, callback, expression='*'):
         def _on_message(consumer, msg):
+            exc = None
             try:
                 callback(RecvMessage(msg))
-            except Exception:
-                return _CConsumeStatus.CONSUME_SUCCESS.value
-            return _CConsumeStatus.RECONSUME_LATER.value
+            except Exception as e:
+                exc = e
+                return _CConsumeStatus.RECONSUME_LATER.value
+            finally:
+                if exc:
+                    raise exc
+
+            return _CConsumeStatus.CONSUME_SUCCESS.value
 
         dll.Subscribe(self._handle, topic.encode('utf-8'), expression.encode('utf-8'))
         self._register_callback(_on_message)
