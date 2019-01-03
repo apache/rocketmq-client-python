@@ -17,16 +17,16 @@
 
 project(rocketmqclientpython)
 
-file(GLOB_RECURSE SRC_FILES   ${CMAKE_SOURCE_DIR}/src/*)
+file(GLOB_RECURSE SRC_FILES ${CMAKE_SOURCE_DIR}/src/*)
 
 # subdirs
 SET(SUB_DIRS)
 file(GLOB children ${CMAKE_SOURCE_DIR}/src/*)
-FOREACH(child ${children})
-	IF(IS_DIRECTORY ${child})
-	    LIST(APPEND SUB_DIRS ${child})
-	ENDIF()
-ENDFOREACH()
+FOREACH (child ${children})
+    IF (IS_DIRECTORY ${child})
+        LIST(APPEND SUB_DIRS ${child})
+    ENDIF ()
+ENDFOREACH ()
 LIST(APPEND SUB_DIRS ${CMAKE_SOURCE_DIR}/src)
 
 # include_directories
@@ -43,15 +43,19 @@ set_target_properties(rocketmqclientpython_static PROPERTIES OUTPUT_NAME "rocket
 target_link_libraries(rocketmqclientpython_static ${deplibs})
 target_link_libraries(rocketmqclientpython_static ${ROCKETMQ_LIBRARIES})
 target_link_libraries(rocketmqclientpython_static ${Boost_LIBRARIES})
-
+target_link_libraries(rocketmqclientpython_static ${PYTHON_LIBRARIES})
 # shared
 set(CMAKE_SHARED_LINKER_FLAGS "-fPIC -shared")
 add_library(rocketmqclientpython_shared SHARED ${SRC_FILES})
 set_target_properties(rocketmqclientpython_shared PROPERTIES OUTPUT_NAME "rocketmqclientpython")
+if (APPLE)
+    set_target_properties(rocketmqclientpython_shared PROPERTIES SUFFIX .so)
+endif (APPLE)
 target_link_libraries(rocketmqclientpython_shared ${deplibs})
 target_link_libraries(rocketmqclientpython_shared ${ROCKETMQ_LIBRARIES})
 target_link_libraries(rocketmqclientpython_shared ${Boost_LIBRARIES})
+target_link_libraries(rocketmqclientpython_shared ${PYTHON_LIBRARIES})
 
 # install
-install (TARGETS   rocketmqclientpython_shared             DESTINATION lib)
+install(TARGETS rocketmqclientpython_shared DESTINATION lib)
 
