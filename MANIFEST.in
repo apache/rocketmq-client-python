@@ -1,0 +1,3 @@
+include README.md rocketmq/librocketmq.dylib rocketmq/librocketmq.so
+
+recursive-exclude * .DS_Store

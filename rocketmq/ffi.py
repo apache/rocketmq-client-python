@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 import os
+import sys
 import ctypes
 from ctypes import c_char, c_char_p, c_void_p, c_int, c_long, c_longlong, Structure, POINTER
 from enum import IntEnum
 
 
+_DYLIB_NAMES = {
+    'darwin': 'librocketmq.dylib',
+    'linux': 'librocketmq.so',
+}
 CURR_DIR = os.path.abspath(os.path.dirname(__file__))
-DYLIB_PATH = os.path.join(CURR_DIR, 'librocketmq.dylib')
+DYLIB_PATH = os.path.join(CURR_DIR, _DYLIB_NAMES[sys.platform.lower()])
 dll = ctypes.cdll.LoadLibrary(DYLIB_PATH)
 
 
