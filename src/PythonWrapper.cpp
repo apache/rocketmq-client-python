@@ -30,22 +30,35 @@ using namespace std;
 const char *VERSION =
         "PYTHON_CLIENT_VERSION: " PYTHON_CLIENT_VERSION ", BUILD DATE: " PYCLI_BUILD_DATE " ";
 
-map<CPushConsumer *, PyObject *> g_CallBackMap;
+map<CPushConsumer *, pair<PyObject *, object>> g_CallBackMap;
 
 class PyThreadStateLock {
 public:
-    PyThreadStateLock(void) {
+    PyThreadStateLock() {
         state = PyGILState_Ensure();
     }
 
-    ~PyThreadStateLock(void) {
-        if (state == PyGILState_LOCKED) {
-            PyGILState_Release(state);
-        }
+    ~PyThreadStateLock() {
+        // NOTE: must paired with PyGILState_Ensure, otherwise it will cause deadlock!!!
+        PyGILState_Release(state);
     }
 
 private:
     PyGILState_STATE state;
+};
+
+class PyThreadStateUnlock {
+public:
+    PyThreadStateUnlock() : _save(NULL) {
+        Py_UNBLOCK_THREADS
+    }
+
+    ~PyThreadStateUnlock() {
+        Py_BLOCK_THREADS
+    }
+
+private:
+    PyThreadState *_save;
 };
 
 #ifdef __cplusplus
@@ -146,22 +159,25 @@ const char *PyGetSendResultMsgID(CSendResult &sendResult) {
 }
 //consumer
 void *PyCreatePushConsumer(const char *groupId) {
-    //Py_Initialize();
-    PyEval_InitThreads();
-//    PyEval_ReleaseThread(PyThreadState_Get());
+    PyEval_InitThreads();  // ensure create GIL, for call Python callback from C.
     return (void *) CreatePushConsumer(groupId);
 }
 int PyDestroyPushConsumer(void *consumer) {
-    return DestroyPushConsumer((CPushConsumer *) consumer);
+    CPushConsumer *consumerInner = (CPushConsumer *) consumer;
+    map<CPushConsumer *, pair<PyObject *, object>>::iterator iter;
+    iter = g_CallBackMap.find(consumerInner);
+    if (iter != g_CallBackMap.end()) {
+        UnregisterMessageCallback(consumerInner);
+        g_CallBackMap.erase(iter);
+    }
+    return DestroyPushConsumer(consumerInner);
 }
 int PyStartPushConsumer(void *consumer) {
     return StartPushConsumer((CPushConsumer *) consumer);
 }
 int PyShutdownPushConsumer(void *consumer) {
-    int ret = ShutdownPushConsumer((CPushConsumer *) consumer);
-    //PyGILState_Ensure();
-    //Py_Finalize();
-    return ret;
+    PyThreadStateUnlock PyThreadUnlock;  // ShutdownPushConsumer is a block call, ensure thread don't hold GIL.
+    return ShutdownPushConsumer((CPushConsumer *) consumer);
 }
 int PySetPushConsumerNameServerAddress(void *consumer, const char *namesrv) {
     return SetPushConsumerNameServerAddress((CPushConsumer *) consumer, namesrv);
@@ -172,29 +188,27 @@ int PySetPushConsumerNameServerDomain(void *consumer, const char *domain){
 int PySubscribe(void *consumer, const char *topic, const char *expression) {
     return Subscribe((CPushConsumer *) consumer, topic, expression);
 }
-int PyRegisterMessageCallback(void *consumer, PyObject *pCallback) {
+int PyRegisterMessageCallback(void *consumer, PyObject *pCallback, object args) {
     CPushConsumer *consumerInner = (CPushConsumer *) consumer;
-    g_CallBackMap[consumerInner] = pCallback;
+    g_CallBackMap[consumerInner] = make_pair(pCallback, std::move(args));
     return RegisterMessageCallback(consumerInner, &PythonMessageCallBackInner);
 }
 
 int PythonMessageCallBackInner(CPushConsumer *consumer, CMessageExt *msg) {
-
-    class PyThreadStateLock PyThreadLock;
-    PyMessageExt message;
-    message.pMessageExt = msg;
-    map<CPushConsumer *, PyObject *>::iterator iter;
+    PyThreadStateLock PyThreadLock;  // ensure hold GIL, before call python callback
+    PyMessageExt message = { .pMessageExt = msg };
+    map<CPushConsumer *, pair<PyObject *, object>>::iterator iter;
     iter = g_CallBackMap.find(consumer);
     if (iter != g_CallBackMap.end()) {
-        PyObject * pCallback = iter->second;
+        pair<PyObject *, object> callback = iter->second;
+        PyObject * pCallback = callback.first;
+        object& args = callback.second;
         if (pCallback != NULL) {
-            int status =
-                    boost::python::call<int>(pCallback, message);
+            int status = boost::python::call<int>(pCallback, message, args);
             return status;
         }
     }
     return 1;
-
 }
 
 int PySetPushConsumerThreadCount(void *consumer, int threadCount) {
@@ -212,7 +226,7 @@ int PySetPushConsumerSessionCredentials(void *consumer, const char *accessKey, c
 }
 
 //push consumer
-int PySetPullConsumerNameServerDomain(void *consumer, const char *domain){
+int PySetPullConsumerNameServerDomain(void *consumer, const char *domain) {
     return SetPullConsumerNameServerDomain((CPullConsumer *) consumer, domain);
 }
 //version

@@ -18,8 +18,10 @@
 import base
 import time
 from librocketmqclientpython import *
+
 totalMsg = 0
-def consumerMessage(msg):
+
+def consumerMessage(msg, args):
      global totalMsg
      totalMsg += 1
      print(">>ConsumerMessage Called:",totalMsg)
@@ -33,11 +35,12 @@ print("Consumer Starting.....")
 
 consumer = CreatePushConsumer("awtTest_Producer_Python_Test")
 print(consumer)
-SetPushConsumerNameServerAddress(consumer,"172.17.0.2:9876")
-SetPushConsumerThreadCount(consumer,1)
+SetPushConsumerNameServerAddress(consumer, "172.17.0.2:9876")
+SetPushConsumerThreadCount(consumer, 1)
 Subscribe(consumer, "T_TestTopic", "*")
-RegisterMessageCallback(consumer,consumerMessage)
+RegisterMessageCallback(consumer, consumerMessage, None)
 StartPushConsumer(consumer)
+
 i = 1
 while i <= 60:
     print(i)

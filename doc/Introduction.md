@@ -73,8 +73,10 @@
 ----------
 ## How to use
 - set LD_LIBRARY_PATH
-  ``````
+  ```
   export LD_LIBRARY_PATH=/usr/local/lib
+  ```
+  
 - import module
   ```
   from librocketmqclientpython import *
@@ -90,28 +92,28 @@
 - producer must invoke following interface:
   ```
   - producer = CreateProducer("please_rename_unique_group_name");
-  - SetProducerNameServerAddress(producer,"please_rename_unique_name_server")
+  - SetProducerNameServerAddress(producer, "please_rename_unique_name_server")
   - StartProducer(producer)
-  - SendMessageSync(producer,msg)
+  - SendMessageSync(producer, msg)
   - ShutdownProducer(producer)
   - DestroyProducer(producer)
   ```
 - how to consumer messages
   ```
-  - def consumerMessage(msg):
-  - topic = GetMessageTopic(msg)
-  - body = GetMessageBody(msg)
-  - tags = GetMessageTags(msg)
-  - msgid = GetMessageId(msg)
-  - handle message
-  - return 0
+  - def consumerMessage(msg, args):
+  -     topic = GetMessageTopic(msg)
+  -     body = GetMessageBody(msg)
+  -     tags = GetMessageTags(msg)
+  -     msgid = GetMessageId(msg)
+  -     # handle message...
+  -     return 0
   ```
 - pushconsumer must invoke following interface:
   ```
   - consumer = CreatePushConsumer("please_rename_unique_group_name_1");
-  - SetPushConsumerNameServerAddress(consumer,"please_rename_unique_name_server")
+  - SetPushConsumerNameServerAddress(consumer, "please_rename_unique_name_server")
   - Subscribe(consumer, "your_topic", "*")
-  - RegisterMessageCallback(consumer,consumerMessage)
+  - RegisterMessageCallback(consumer, consumerMessage, args)
   - StartPushConsumer(consumer)
   - ShutdownPushConsumer(consumer)
   - DestroyPushConsumer(consumer)
@@ -122,3 +124,4 @@
   - python testProducer.py
 - push consumer
   - python testConsumer.py
+

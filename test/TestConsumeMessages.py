@@ -34,7 +34,7 @@ def sigint_handler(signum, frame):
     sys.exit(0)
 
 
-def consumer_message(msg):
+def consumer_message(msg, args):
     global totalMsg
     totalMsg += 1
     print 'total count %d' % totalMsg
@@ -55,7 +55,7 @@ def init_producer(_group, _topic, _tag):
     SetPushConsumerNameServerAddress(consumer, name_srv)
     SetPushConsumerThreadCount(consumer, 1)
     Subscribe(consumer, _topic, _tag)
-    RegisterMessageCallback(consumer, consumerMessage)
+    RegisterMessageCallback(consumer, consumer_message, None)
     StartPushConsumer(consumer)
     print 'consumer is ready...'
     return consumer

@@ -31,13 +31,14 @@
     topic: topic name
     tag: topic tag
 
-* RegisterMessageCallback(consumer, pyCallBack) <br />
+* RegisterMessageCallback(consumer, pyCallBack, pyArgs) <br />
   - function description<br />
     set callback for push consumer instance <br />
 
   - input <br />
     consumer: consumer intance<br />
-    pyCallBack: py callback method. when message pulled, they would be send to a pyCallback method
+    pyCallBack: py callback method. when message pulled, they would be send to a pyCallback method<br />
+    pyArgs: the arguments will be passed to pyCallBack
 
 * SetPushConsumerThreadCount(consumer, threadCount)
   - function description<br />
