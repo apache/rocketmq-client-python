@@ -44,7 +44,7 @@ class _CLogLevel(CtypesEnum):
     LEVEL_NUM = 7
 
 
-class _CMessageModel(CtypesEnum):
+class MessageModel(CtypesEnum):
     BROADCASTING = 0
     CLUSTERING = 1
 
@@ -244,3 +244,5 @@ dll.SetPushConsumerLogFileNumAndSize.argtypes = [c_void_p, c_int, c_long]
 dll.SetPushConsumerLogFileNumAndSize.restype = c_int
 dll.SetPushConsumerLogLevel.argtypes = [c_void_p, _CLogLevel]
 dll.SetPushConsumerLogLevel.restype = c_int
+dll.SetPushConsumerMessageModel.argtypes = [c_void_p, MessageModel]
+dll.SetPushConsumerMessageModel.restype = c_int

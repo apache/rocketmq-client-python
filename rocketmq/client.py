@@ -2,7 +2,10 @@
 import ctypes
 from collections import namedtuple
 
-from .ffi import dll, _CSendResult, MSG_CALLBACK_FUNC, _CMessageQueue, _CPullStatus
+from .ffi import (
+    dll, _CSendResult, MSG_CALLBACK_FUNC, _CMessageQueue, _CPullStatus,
+    MessageModel,
+)
 
 
 SendResult = namedtuple('SendResult', ['status', 'msg_id', 'offset'])
@@ -95,13 +98,17 @@ class Producer(object):
 
 
 class PushConsumer(object):
-    def __init__(self, group_id, orderly=False):
+    def __init__(self, group_id, orderly=False, message_model=MessageModel.CLUSTERING):
         self._handle = dll.CreatePushConsumer(group_id.encode('utf-8'))
         self._orderly = orderly
+        self.set_message_model(message_model)
 
     def __del__(self):
         if self._handle is not None:
             dll.DestroyPushConsumer(self._handle)
+
+    def set_message_model(self, model):
+        dll.SetPushConsumerMessageModel(self._handle, model)
 
     def start(self):
         return dll.StartPushConsumer(self._handle)
