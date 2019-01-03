@@ -1,3 +1,79 @@
 # rocketmq-python
 
+[![Build Status](https://travis-ci.com/messense/rocketmq-python.svg?branch=master)](https://travis-ci.com/messense/rocketmq-python)
+[![PyPI](https://img.shields.io/pypi/v/rocketmq.svg)](https://pypi.org/project/rocketmq)
+
 RocketMQ Python client
+
+## Installation
+
+```bash
+pip install rocketmq
+```
+
+## Usage
+
+### Producer
+
+```python
+from rocketmq.client import Producer, Message
+
+producer = Producer('PID-XXX')
+producer.set_namesrv_domain('http://onsaddr-internet.aliyun.com/rocketmq/nsaddr4client-internet')
+producer.set_session_credentials('XXX', 'XXXX', 'ALIYUN')
+producer.start()
+
+msg = Message('YOUR-TOPIC')
+msg.set_keys('XXX')
+msg.set_tags('XXX')
+msg.set_body('XXXX')
+ret = producer.send_sync(msg)
+print(ret.status, ret.msg_id, ret.offset)
+producer.shutdown()
+```
+
+### PushConsumer
+
+```python
+import time
+
+from rocketmq.client import PushConsumer
+
+
+def callback(msg):
+    print(msg.id, msg.body)
+
+
+consumer = PushConsumer('CID_XXX')
+consumer.set_namesrv_domain('http://onsaddr-internet.aliyun.com/rocketmq/nsaddr4client-internet')
+consumer.set_session_credentials('XXX', 'XXXX', 'ALIYUN')
+consumer.subscribe('YOUR-TOPIC', callback)
+consumer.start()
+
+while True:
+    time.sleep(3600)
+
+consumer.shutdown()
+
+```
+
+### PullConsumer
+
+```python
+from rocketmq.client import PullConsumer
+
+
+consumer = PullConsumer('CID_XXX')
+consumer.set_namesrv_domain('http://onsaddr-internet.aliyun.com/rocketmq/nsaddr4client-internet')
+consumer.set_session_credentials('XXX', 'XXXX', 'ALIYUN')
+consumer.start()
+
+for msg in consumer.pull('YOUR-TOPIC'):
+    print(msg.id, msg.body)
+
+consumer.shutdown()
+```
+
+## License
+
+This work is released under the MIT license. A copy of the license is provided in the [LICENSE](./LICENSE) file.
