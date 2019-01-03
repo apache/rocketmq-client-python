@@ -30,6 +30,6 @@ after_failure:
 after_success:
   - |
     if [[ "${TRAVIS_TAG:-}" != "" ]]; then
-      sudo pip3 install twine;
+      sudo python3.6 -m pip install twine;
       twine upload --skip-existing dist/*;
     fi
