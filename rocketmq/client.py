@@ -4,7 +4,7 @@ from collections import namedtuple
 
 from .ffi import (
     dll, _CSendResult, MSG_CALLBACK_FUNC, _CMessageQueue, _CPullStatus,
-    MessageModel,
+    _CConsumeStatus, MessageModel,
 )
 
 
@@ -102,6 +102,7 @@ class PushConsumer(object):
         self._handle = dll.CreatePushConsumer(group_id.encode('utf-8'))
         self._orderly = orderly
         self.set_message_model(message_model)
+        self._refs = []
 
     def __del__(self):
         if self._handle is not None:
@@ -129,8 +130,6 @@ class PushConsumer(object):
         return dll.SetPushConsumerSessionCredentials(self._handle, access_key.encode('utf-8'), access_secret.encode('utf-8'), channel.encode('utf-8'))
 
     def subscribe(self, topic, callback, expression='*'):
-        from .ffi import _CConsumeStatus
-
         def _on_message(consumer, msg):
             try:
                 callback(msg)
@@ -139,14 +138,17 @@ class PushConsumer(object):
             return _CConsumeStatus.RECONSUME_LATER.value
 
         dll.Subscribe(self._handle, topic.encode('utf-8'), expression.encode('utf-8'))
-        self._register_callback(MSG_CALLBACK_FUNC(_on_message))
+        self._register_callback(_on_message)
 
     def _register_callback(self, callback):
         if self._orderly:
             register_func = dll.RegisterMessageCallbackOrderly
         else:
             register_func = dll.RegisterMessageCallback
-        return register_func(self._handle, MSG_CALLBACK_FUNC(callback))
+
+        func = MSG_CALLBACK_FUNC(callback)
+        self._refs.append(func)
+        return register_func(self._handle, func)
 
     def _unregister_callback(self):
         if self._orderly:
