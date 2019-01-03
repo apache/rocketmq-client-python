@@ -132,7 +132,7 @@ class PushConsumer(object):
     def subscribe(self, topic, callback, expression='*'):
         def _on_message(consumer, msg):
             try:
-                callback(msg)
+                callback(RecvMessage(msg))
             except Exception:
                 return _CConsumeStatus.CONSUME_SUCCESS.value
             return _CConsumeStatus.RECONSUME_LATER.value
