@@ -42,7 +42,7 @@
        ```
        mkdir rocketmqlib
        cd rocketmqlib
-       https://opensource-rocketmq-client.oss-cn-hangzhou.aliyuncs.com/cpp-client/linux/1.2.0/RHEL7.x/librocketmq.tar.gz
+       wget https://opensource-rocketmq-client.oss-cn-hangzhou.aliyuncs.com/cpp-client/linux/1.2.0/RHEL7.x/librocketmq.tar.gz
        tar -xzf librocketmq.tar.gz
        sudo cp librocketmq.so librocketmq.a /usr/local/lib/
        sudo cp -r rocketmq /usr/local/include/
