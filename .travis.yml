@@ -48,6 +48,7 @@ before_script:
 
 after_failure:
   - tail -n 2000 build.log
+  - cat ~/logs/rocketmq-cpp/*.log.*
 
 after_success:
   - |
