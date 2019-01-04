@@ -264,5 +264,5 @@ class PullConsumer(object):
                         yield RecvMessage(pull_res.msgFoundList[i])
                 elif pull_res.pullStatus == _CPullStatus.NO_MATCHED_MSG:
                     break
-                ffi_check(dll.ReleasePullResult(pull_res))
+                dll.ReleasePullResult(pull_res)  # NOTE: No need to check ffi return code
         ffi_check(dll.ReleaseSubscriptionMessageQueue(message_queue))
