@@ -15,12 +15,42 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
+#include "PythonWrapper.h"
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     int ret = RUN_ALL_TESTS();
+    return ret;
+}
+TEST(Version, testVersion) {
+    const char *version = PyGetVersion();
+    const char *versionExp = PyGetVersion();
+    ASSERT_STREQ(version,versionExp);
+}
+TEST(Message, testCreateMessage) {
+    ASSERT_TRUE(1 == 1);
 }
 
-TEST(Message, testCreateMessage) {
-ASSERT_TRUE(1 == 1);
+TEST(Message, testSetMessageTopic) {
+    ASSERT_TRUE(1 == 1);
+}
+
+TEST(Message, testSetMessageKey) {
+    ASSERT_TRUE(1 == 1);
+}
+
+TEST(Message, testSetMessageTag) {
+    ASSERT_TRUE(1 == 1);
+}
+
+TEST(Message, testSetMessageValue) {
+    ASSERT_TRUE(1 == 1);
+}
+
+TEST(Message, testSetMessageDelayLevel) {
+    ASSERT_TRUE(1 == 1);
+}
+
+TEST(Message, testDestroyMessage) {
+    ASSERT_TRUE(1 == 1);
 }

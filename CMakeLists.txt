@@ -14,6 +14,9 @@
 #* See the License for the specific language governing permissions and
 #* limitations under the License.
 #*/
+
+project(rocketmq-client-python)
+
 cmake_minimum_required(VERSION 2.6)
 
 set(CMAKE_MACOSX_RPATH 1)
@@ -205,11 +208,10 @@ set(TIME_WITH_SYS_TIME 1)
 set(HAVE_SOCKLEN_T 1)
 
 option(TEST "Build test cases" OFF)
-
 if (TEST)
     enable_testing()
     option(gtest_build_tests OFF)
-    add_subdirectory(third_party/googletest/googletest)
+    #add_subdirectory(third_party/googletest/googletest)
     include_directories(SYSTEM ${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
     add_subdirectory(unitests)
 endif ()
