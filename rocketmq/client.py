@@ -85,8 +85,14 @@ class RecvMessage(object):
 
 
 class Producer(object):
-    def __init__(self, group_id):
+    def __init__(self, group_id, timeout=None, compress_level=None, max_message_size=None):
         self._handle = dll.CreateProducer(group_id.encode('utf-8'))
+        if timeout is not None:
+            self.set_timeout(timeout)
+        if compress_level is not None:
+            self.set_compress_level(compress_level)
+        if max_message_size is not None:
+            self.set_max_message_size(max_message_size)
 
     def __del__(self):
         if self._handle is not None:
@@ -120,6 +126,15 @@ class Producer(object):
             access_secret.encode('utf-8'),
             channel.encode('utf-8')
         ))
+
+    def set_timeout(self, timeout):
+        ffi_check(dll.SetProducerSendMsgTimeout(self._handle, timeout))
+
+    def set_compress_level(self, level):
+        ffi_check(dll.SetProducerCompressLevel(self._handle, level))
+
+    def set_max_message_size(self, max_size):
+        ffi_check(dll.SetProducerMaxMessageSize(self._handle, max_size))
 
     def start(self):
         ffi_check(dll.StartProducer(self._handle))

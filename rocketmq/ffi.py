@@ -144,6 +144,9 @@ dll.GetMessagePreparedTransactionOffset.argtypes = [c_void_p]
 dll.GetMessagePreparedTransactionOffset.restype = c_longlong
 
 # Producer
+
+QUEUE_SELECTOR_CALLBACK = ctypes.CFUNCTYPE(c_int, c_int, c_void_p, c_void_p)
+
 dll.CreateProducer.argtypes = [c_char_p]
 dll.CreateProducer.restype = c_void_p
 dll.DestroyProducer.argtypes = [c_void_p]
@@ -162,10 +165,24 @@ dll.SetProducerInstanceName.argtypes = [c_void_p, c_char_p]
 dll.SetProducerInstanceName.restype = _CStatus
 dll.SetProducerSessionCredentials.argtypes = [c_void_p, c_char_p, c_char_p, c_char_p]
 dll.SetProducerSessionCredentials.restype = _CStatus
+dll.SetProducerLogPath.argtypes = [c_void_p, c_char_p]
+dll.SetProducerLogPath.restype = _CStatus
+dll.SetProducerLogFileNumAndSize.argtypes = [c_void_p, c_int, c_long]
+dll.SetProducerLogFileNumAndSize.restype = _CStatus
+dll.SetProducerLogLevel.argtypes = [c_void_p, _CLogLevel]
+dll.SetProducerLogLevel.restype = _CStatus
+dll.SetProducerSendMsgTimeout.argtypes = [c_void_p, c_int]
+dll.SetProducerSendMsgTimeout.restype = _CStatus
+dll.SetProducerCompressLevel.argtypes = [c_void_p, c_int]
+dll.SetProducerCompressLevel.restype = _CStatus
+dll.SetProducerMaxMessageSize.argtypes = [c_void_p, c_int]
+dll.SetProducerMaxMessageSize.restype = _CStatus
 dll.SendMessageSync.argtypes = [c_void_p, c_void_p, POINTER(_CSendResult)]
 dll.SendMessageSync.restype = _CStatus
 dll.SendMessageOneway.argtypes = [c_void_p, c_void_p]
 dll.SendMessageOneway.restype = _CStatus
+dll.SendMessageOrderly.argtypes = [c_void_p, c_void_p, QUEUE_SELECTOR_CALLBACK, c_void_p, c_int, POINTER(_CSendResult)]
+dll.SendMessageOrderly.restype = _CStatus
 
 # Pull Consumer
 dll.CreatePullConsumer.argtypes = [c_char_p]
