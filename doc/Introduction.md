@@ -74,7 +74,7 @@
     ```
     - brew install make
     - brew install cmake
-    - sbrew install gcc-c++
+    - brew install gcc-c++
     ```
 * Install dependency:
  
