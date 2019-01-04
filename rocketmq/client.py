@@ -70,6 +70,19 @@ class RecvMessage(object):
         self.commit_log_offset = dll.GetMessageCommitLogOffset(handle)
         self.prepared_transaction_offset = dll.GetMessagePreparedTransactionOffset(handle)
 
+    def __str__(self):
+        return self.body.decode('utf-8')
+
+    def __bytes__(self):
+        return self.body
+
+    def __repr__(self):
+        return '<RecvMessage topic={} id={} body={}>'.format(
+            repr(self.topic),
+            repr(self.id),
+            repr(self.body),
+        )
+
 
 class Producer(object):
     def __init__(self, group_id):
