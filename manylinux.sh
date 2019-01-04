@@ -9,7 +9,7 @@ curl -sqL https://zlib.net/zlib-1.2.11.tar.gz | tar -xz -C /tmp
 cd /tmp/zlib-1.2.11/ && ./configure --prefix=/usr && make && make install && cd -
 
 # Build rocketmq-client-cpp
-git clone --depth=1 --branch=fix-push-consumer-dtor https://github.com/messense/rocketmq-client-cpp.git /tmp/rocketmq-client-cpp
+git clone --depth=1 https://github.com/apache/rocketmq-client-cpp.git /tmp/rocketmq-client-cpp
 mkdir -p /tmp/rocketmq-client-cpp/tmp_down_dir
 curl -sqL -o /tmp/rocketmq-client-cpp/tmp_down_dir/libevent-release-2.0.22-stable.zip https://github.com/libevent/libevent/archive/release-2.0.22-stable.zip
 curl -sqL -o /tmp/rocketmq-client-cpp/tmp_down_dir/jsoncpp-0.10.6.zip https://github.com/open-source-parsers/jsoncpp/archive/0.10.6.zip

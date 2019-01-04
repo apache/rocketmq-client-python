@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import ctypes
+from enum import IntEnum
 from collections import namedtuple
 
 from .ffi import (
@@ -10,6 +11,13 @@ from .exceptions import ffi_check
 
 
 SendResult = namedtuple('SendResult', ['status', 'msg_id', 'offset'])
+
+
+class SendStatus(IntEnum):
+    OK = 0
+    FLUSH_DISK_TIMEOUT = 1
+    FLUSH_SLAVE_TIMEOUT = 2
+    SLAVE_NOT_AVAILABLE = 3
 
 
 class Message(object):
@@ -74,7 +82,11 @@ class Producer(object):
     def send_sync(self, msg):
         cres = _CSendResult()
         ffi_check(dll.SendMessageSync(self._handle, msg, ctypes.pointer(cres)))
-        return SendResult(cres.sendStatus, cres.msgId.decode('utf-8'), cres.offset)
+        return SendResult(
+            SendStatus(cres.sendStatus),
+            cres.msgId.decode('utf-8'),
+            cres.offset
+        )
 
     def send_oneway(self, msg):
         ffi_check(dll.SendMessageOneway(self._handle, msg))

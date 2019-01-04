@@ -11,18 +11,36 @@ matrix:
         - while sleep 300; do echo "=====[ $SECONDS seconds, still building... ]====="; done &
         - docker run --rm -it -v `pwd`:/io -w /io quay.io/pypa/manylinux1_x86_64 /io/manylinux.sh >> build.log 2>&1
         - ls dist/
-        - kill %1
+        - pip install --force-reinstall dist/*.whl
+        - pip install -Ur dev-requirements.txt
+        - pytest -v tests
     - os: osx
-      osx_image: xcode9.4
+      osx_image: xcode9.3
       compiler: clang
       script:
-        - git clone --depth=1 --branch=fix-push-consumer-dtor https://github.com/messense/rocketmq-client-cpp.git /tmp/rocketmq-client-cpp
+        - brew upgrade python
+        - git clone --depth=1 https://github.com/apache/rocketmq-client-cpp.git /tmp/rocketmq-client-cpp
         - while sleep 300; do echo "=====[ $SECONDS seconds, still building... ]====="; done &
         - cd /tmp/rocketmq-client-cpp && bash build.sh >> build.log 2>&1 && cd -
         - cp /tmp/rocketmq-client-cpp/bin/librocketmq.dylib rocketmq/
-        - python3.6 setup.py bdist_wheel
+        - python3 setup.py bdist_wheel
         - ls dist/
-        - kill %1
+        - python3 -m pip install --force-reinstall dist/*.whl
+        - python3 -m pip install -Ur dev-requirements.txt
+        # - python3 -m pytest -v tests  # Skip for now, tests hang on Travis
+
+before_script:
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export JAVA_HOME=$(/usr/libexec/java_home); fi
+  - wget http://us.mirrors.quenda.co/apache/rocketmq/4.3.2/rocketmq-all-4.3.2-bin-release.zip
+  - unzip rocketmq-all-4.3.2-bin-release.zip
+  - cd rocketmq-all-4.3.2-bin-release
+  - perl -i -pe's/-Xms8g -Xmx8g -Xmn4g/-Xms2g -Xmx2g -Xmn1g/g' bin/runbroker.sh
+  - nohup sh bin/mqnamesrv &
+  - nohup sh bin/mqbroker -n localhost:9876 &
+  - sleep 10
+  - ./bin/mqadmin updateTopic -b '127.0.0.1:10911' –n '127.0.0.1:9876' -t test
+  - ./bin/mqadmin updateSubGroup -b '127.0.0.1:10911' –n '127.0.0.1:9876' -g testGroup
+  - cd ..
 
 after_failure:
   - tail -n 2000 build.log

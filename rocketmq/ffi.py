@@ -54,13 +54,6 @@ class MessageModel(CtypesEnum):
     CLUSTERING = 1
 
 
-class _CSendStatus(CtypesEnum):
-    OK = 0
-    FLUSH_DISK_TIMEOUT = 1
-    FLUSH_SLAVE_TIMEOUT = 2
-    SLAVE_NOT_AVAILABLE = 3
-
-
 class _CSendResult(Structure):
     _fields_ = [
         ('sendStatus', c_int),
