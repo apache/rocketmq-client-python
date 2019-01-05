@@ -12,9 +12,12 @@ matrix:
         - docker run --rm -it -v `pwd`:/io -w /io quay.io/pypa/manylinux1_x86_64 /io/manylinux.sh >> build.log 2>&1
         - ls dist/
         - sudo rm -rf build *.egg-info
-        - pip install --force-reinstall dist/*.whl
         - pip install -Ur dev-requirements.txt
-        - pytest -v tests
+        - pip install -e .
+        - pytest --cov=rocketmq -v tests
+        - pip install codecov && codecov
+        # Try to install binary wheel
+        - pip install --force-reinstall dist/*.whl
     - dist: trusty
       language: python
       python: 3.6
@@ -25,9 +28,14 @@ matrix:
         - docker run --rm -it -v `pwd`:/io -w /io quay.io/pypa/manylinux1_x86_64 /io/manylinux.sh >> build.log 2>&1
         - ls dist/
         - sudo rm -rf build *.egg-info
-        - pip install --force-reinstall dist/*.whl
         - pip install -Ur dev-requirements.txt
-        - pytest -v tests
+        - pip install -e .
+        - pytest --cov=rocketmq -v tests
+        - pip install codecov && codecov
+        # Try to install binary wheel
+        - pip install --force-reinstall dist/*.whl
+        # Build source distribution
+        - if [[ "${TRAVIS_TAG:-}" != "" ]]; then python setup.py sdist; fi
     - os: osx
       osx_image: xcode9.3
       compiler: clang
@@ -39,9 +47,10 @@ matrix:
         - cp /tmp/rocketmq-client-cpp/bin/librocketmq.dylib rocketmq/
         - python3 setup.py sdist bdist_wheel
         - ls dist/
-        - python3 -m pip install --force-reinstall dist/*.whl
+        # Try to install binary wheel
         - python3 -m pip install -Ur dev-requirements.txt
-        # - python3 -m pytest -v tests  # Skip for now, tests hang on Travis
+        - python3 -m pip install --force-reinstall dist/*.whl
+        # - python3 -m pytest --cov=rocketmq -v tests  # Skip for now, tests hang on Travis
 
 before_script:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export JAVA_HOME=$(/usr/libexec/java_home); fi

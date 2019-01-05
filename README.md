@@ -1,6 +1,7 @@
 # rocketmq-python
 
 [![Build Status](https://travis-ci.com/messense/rocketmq-python.svg?branch=master)](https://travis-ci.com/messense/rocketmq-python)
+[![codecov](https://codecov.io/gh/messense/rocketmq-python/branch/master/graph/badge.svg)](https://codecov.io/gh/messense/rocketmq-python)
 [![PyPI](https://img.shields.io/pypi/v/rocketmq.svg)](https://pypi.org/project/rocketmq)
 
 RocketMQ Python client
