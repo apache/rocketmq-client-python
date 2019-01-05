@@ -7,7 +7,7 @@ from .ffi import (
     dll, _CSendResult, MSG_CALLBACK_FUNC, _CMessageQueue, _CPullStatus,
     _CConsumeStatus, MessageModel,
 )
-from .exceptions import ffi_check
+from .exceptions import ffi_check, PushConsumerStartFailed
 
 
 SendResult = namedtuple('SendResult', ['status', 'msg_id', 'offset'])
@@ -148,7 +148,7 @@ class PushConsumer(object):
         self._handle = dll.CreatePushConsumer(group_id.encode('utf-8'))
         self._orderly = orderly
         self.set_message_model(message_model)
-        self._refs = []
+        self._callback_refs = []
 
     def __del__(self):
         if self._handle is not None:
@@ -158,7 +158,11 @@ class PushConsumer(object):
         ffi_check(dll.SetPushConsumerMessageModel(self._handle, model))
 
     def start(self):
-        ffi_check(dll.StartPushConsumer(self._handle))
+        if self._callback_refs:
+            # rocketmq-client-cpp segfault if we don't have any callback registered
+            ffi_check(dll.StartPushConsumer(self._handle))
+        else:
+            raise PushConsumerStartFailed('PushConsumer start failed: no topic subscribed')
 
     def shutdown(self):
         ffi_check(dll.ShutdownPushConsumer(self._handle))
@@ -204,13 +208,14 @@ class PushConsumer(object):
             register_func = dll.RegisterMessageCallback
 
         func = MSG_CALLBACK_FUNC(callback)
-        self._refs.append(func)
+        self._callback_refs.append(func)
         ffi_check(register_func(self._handle, func))
 
     def _unregister_callback(self):
         if self._orderly:
             ffi_check(dll.UnregisterMessageCallbackOrderly(self._handle))
         ffi_check(dll.UnregisterMessageCallback(self._handle))
+        self._callback_refs = []
 
     def set_thread_count(self, thread_count):
         ffi_check(dll.SetPushConsumerThreadCount(self._handle, thread_count))
