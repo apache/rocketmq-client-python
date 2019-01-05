@@ -3,6 +3,10 @@ import pytest
 from rocketmq.client import Producer, PushConsumer, PullConsumer
 
 
+# HACK: It's buggy, don't call it in test case for now
+del PushConsumer.__del__
+
+
 @pytest.fixture(scope='session')
 def producer():
     prod = Producer('testGroup')
