@@ -75,6 +75,7 @@ int PySetProducerInstanceName(void *producer, const char *instanceName);
 int PySetProducerSessionCredentials(void *producer, const char *accessKey, const char *secretKey, const char *channel);
 PySendResult PySendMessageSync(void *producer, void *msg);
 int PySendMessageOneway(void *producer, void *msg);
+PySendResult PySendMessageOrderly(void *producer, void *msg , int autoRetryTimes, PyObject *args, PyObject *callback);
 
 //sendResult
 const char *PyGetSendResultMsgID(CSendResult &sendResult);
