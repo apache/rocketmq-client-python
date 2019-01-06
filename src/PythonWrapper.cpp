@@ -116,6 +116,9 @@ int PyShutdownProducer(void *producer) {
 int PySetProducerNameServerAddress(void *producer, const char *namesrv) {
     return SetProducerNameServerAddress((CProducer *) producer, namesrv);
 }
+int PySetProducerNameServerDomain(void *producer, const char *domain) {
+    return SetProducerNameServerDomain((CProducer *) producer, domain);
+}
 int PySetProducerInstanceName(void *producer, const char *instanceName) {
     return SetProducerInstanceName((CProducer *)producer, instanceName);
 }
@@ -181,6 +184,9 @@ int PyShutdownPushConsumer(void *consumer) {
 int PySetPushConsumerNameServerAddress(void *consumer, const char *namesrv) {
     return SetPushConsumerNameServerAddress((CPushConsumer *) consumer, namesrv);
 }
+int PySetPushConsumerNameServerDomain(void *consumer, const char *domain){
+    return SetPushConsumerNameServerDomain((CPushConsumer *) consumer, domain);
+}
 int PySubscribe(void *consumer, const char *topic, const char *expression) {
     return Subscribe((CPushConsumer *) consumer, topic, expression);
 }
@@ -221,6 +227,11 @@ int PySetPushConsumerInstanceName(void *consumer, const char *instanceName){
 int PySetPushConsumerSessionCredentials(void *consumer, const char *accessKey, const char *secretKey,
                                        const char *channel){
     return SetPushConsumerSessionCredentials((CPushConsumer *)consumer, accessKey, secretKey, channel);
+}
+
+//push consumer
+int PySetPullConsumerNameServerDomain(void *consumer, const char *domain){
+    return SetPullConsumerNameServerDomain((CPullConsumer *) consumer, domain);
 }
 //version
 const char *PyGetVersion() {
@@ -282,6 +293,7 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("StartProducer", PyStartProducer);
     def("ShutdownProducer", PyShutdownProducer);
     def("SetProducerNameServerAddress", PySetProducerNameServerAddress);
+    def("SetProducerNameServerDomain", PySetProducerNameServerDomain);
     def("SetProducerInstanceName", PySetProducerInstanceName);
     def("SetProducerSessionCredentials", PySetProducerSessionCredentials);
     def("SendMessageSync", PySendMessageSync);
@@ -294,12 +306,16 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("StartPushConsumer", PyStartPushConsumer);
     def("ShutdownPushConsumer", PyShutdownPushConsumer);
     def("SetPushConsumerNameServerAddress", PySetPushConsumerNameServerAddress);
+    def("SetPushConsumerNameServerDomain", PySetPushConsumerNameServerDomain);
     def("SetPushConsumerThreadCount", PySetPushConsumerThreadCount);
     def("SetPushConsumerMessageBatchMaxSize", PySetPushConsumerMessageBatchMaxSize);
     def("SetPushConsumerInstanceName", PySetPushConsumerInstanceName);
     def("SetPushConsumerSessionCredentials", PySetPushConsumerSessionCredentials);
     def("Subscribe", PySubscribe);
     def("RegisterMessageCallback", PyRegisterMessageCallback);
+
+    //pull consumer
+    def("SetPullConsumerNameServerDomain", PySetPullConsumerNameServerDomain);
 
     //For Version
     def("GetVersion", PyGetVersion);
