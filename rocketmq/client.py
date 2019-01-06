@@ -171,11 +171,7 @@ class PushConsumer(object):
         ffi_check(dll.SetPushConsumerMessageModel(self._handle, model))
 
     def start(self):
-        if self._callback_refs:
-            # rocketmq-client-cpp segfault if we don't have any callback registered
-            ffi_check(dll.StartPushConsumer(self._handle))
-        else:
-            raise PushConsumerStartFailed('PushConsumer start failed: no topic subscribed')
+        ffi_check(dll.StartPushConsumer(self._handle))
 
     def shutdown(self):
         ffi_check(dll.ShutdownPushConsumer(self._handle))
