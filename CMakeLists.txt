@@ -70,6 +70,7 @@ set(CXX_FLAGS
         -fPIC
         -fno-strict-aliasing
         -Wno-unused-result
+        -Wno-unused-local-typedef
         # -finline-limit=1000
         # -Wextra
         # -pedantic
