@@ -4,6 +4,18 @@ matrix:
   include:
     - dist: trusty
       language: python
+      python: 2.7
+      services:
+        - docker
+      script:
+        - while sleep 300; do echo "=====[ $SECONDS seconds, still building... ]====="; done &
+        - docker run --rm -it -v `pwd`:/io -w /io quay.io/pypa/manylinux1_x86_64 /io/manylinux.sh >> build.log 2>&1
+        - ls dist/
+        - pip install --force-reinstall dist/*.whl
+        - pip install -Ur dev-requirements.txt
+        - pytest -v tests
+    - dist: trusty
+      language: python
       python: 3.6
       services:
         - docker
@@ -48,7 +60,7 @@ after_failure:
 
 after_success:
   - |
-    if [[ "${TRAVIS_TAG:-}" != "" ]]; then
+    if [[ "${TRAVIS_TAG:-}" != "" && $TRAVIS_PYTHON_VERSION != "2.7" ]]; then
       sudo python -m pip install twine;
       twine upload --skip-existing dist/*;
     fi

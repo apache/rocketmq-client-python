@@ -26,7 +26,7 @@ try:
         def get_tag(self):
             # this set's us up to build generic wheels.
             python, abi, plat = _bdist_wheel.get_tag(self)
-            python, abi = 'py3', 'none'
+            python, abi = 'py2.py3', 'none'
             return python, abi, plat
     cmdclass['bdist_wheel'] = bdist_wheel
 
@@ -52,13 +52,17 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     include_package_data=True,
+    install_requires=[
+        "enum34; python_version<='3.4'",
+    ],
     cmdclass=cmdclass,
-    python_requires='>=3.6',
     classifiers=[
         'Operating System :: MacOS',
         'Operating System :: POSIX',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',

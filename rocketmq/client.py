@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import sys
 import ctypes
 from enum import IntEnum
 from collections import namedtuple
@@ -10,6 +11,12 @@ from .ffi import (
 from .exceptions import ffi_check, PushConsumerStartFailed
 
 
+PY2 = sys.version_info[0] == 2
+if PY2:
+    text_type = unicode
+else:
+    text_type = str
+
 SendResult = namedtuple('SendResult', ['status', 'msg_id', 'offset'])
 
 
@@ -20,25 +27,31 @@ class SendStatus(IntEnum):
     SLAVE_NOT_AVAILABLE = 3
 
 
+def _to_bytes(s):
+    if isinstance(s, text_type):
+        return s.encode('utf-8')
+    return s
+
+
 class Message(object):
     def __init__(self, topic):
-        self._handle = dll.CreateMessage(topic.encode('utf-8'))
+        self._handle = dll.CreateMessage(_to_bytes(topic))
 
     def __del__(self):
         if self._handle is not None:
             ffi_check(dll.DestroyMessage(self._handle))
 
     def set_keys(self, keys):
-        ffi_check(dll.SetMessageKeys(self._handle, keys.encode('utf-8')))
+        ffi_check(dll.SetMessageKeys(self._handle, _to_bytes(keys)))
 
     def set_tags(self, tags):
-        ffi_check(dll.SetMessageTags(self._handle, tags.encode('utf-8')))
+        ffi_check(dll.SetMessageTags(self._handle, _to_bytes(tags)))
 
     def set_body(self, body):
-        ffi_check(dll.SetMessageBody(self._handle, body.encode('utf-8')))
+        ffi_check(dll.SetMessageBody(self._handle, _to_bytes(body)))
 
     def set_property(self, key, value):
-        ffi_check(dll.SetMessageProperty(self._handle, key.encode('utf-8'), value.encode('utf-8')))
+        ffi_check(dll.SetMessageProperty(self._handle, _to_bytes(key), _to_bytes(value)))
 
     def set_delay_time_level(self, delay_time_level):
         ffi_check(dll.SetDelayTimeLevel(self._handle, delay_time_level))
@@ -86,7 +99,7 @@ class RecvMessage(object):
 
 class Producer(object):
     def __init__(self, group_id, timeout=None, compress_level=None, max_message_size=None):
-        self._handle = dll.CreateProducer(group_id.encode('utf-8'))
+        self._handle = dll.CreateProducer(_to_bytes(group_id))
         if timeout is not None:
             self.set_timeout(timeout)
         if compress_level is not None:
@@ -111,20 +124,20 @@ class Producer(object):
         ffi_check(dll.SendMessageOneway(self._handle, msg))
 
     def set_group(self, group_name):
-        ffi_check(dll.SetProducerGroupName(group_name.encode('utf-8')))
+        ffi_check(dll.SetProducerGroupName(_to_bytes(group_name)))
 
     def set_namesrv_addr(self, addr):
-        ffi_check(dll.SetProducerNameServerAddress(self._handle, addr.encode('utf-8')))
+        ffi_check(dll.SetProducerNameServerAddress(self._handle, _to_bytes(addr)))
 
     def set_namesrv_domain(self, domain):
-        ffi_check(dll.SetProducerNameServerDomain(self._handle, domain.encode('utf-8')))
+        ffi_check(dll.SetProducerNameServerDomain(self._handle, _to_bytes(domain)))
 
     def set_session_credentials(self, access_key, access_secret, channel):
         ffi_check(dll.SetProducerSessionCredentials(
             self._handle,
-            access_key.encode('utf-8'),
-            access_secret.encode('utf-8'),
-            channel.encode('utf-8')
+            _to_bytes(access_key),
+            _to_bytes(access_secret),
+            _to_bytes(channel)
         ))
 
     def set_timeout(self, timeout):
@@ -145,7 +158,7 @@ class Producer(object):
 
 class PushConsumer(object):
     def __init__(self, group_id, orderly=False, message_model=MessageModel.CLUSTERING):
-        self._handle = dll.CreatePushConsumer(group_id.encode('utf-8'))
+        self._handle = dll.CreatePushConsumer(_to_bytes(group_id))
         self._orderly = orderly
         self.set_message_model(message_model)
         self._callback_refs = []
@@ -168,20 +181,20 @@ class PushConsumer(object):
         ffi_check(dll.ShutdownPushConsumer(self._handle))
 
     def set_group(self, group_id):
-        ffi_check(dll.SetPushConsumerGroupID(group_id.encode('utf-8')))
+        ffi_check(dll.SetPushConsumerGroupID(_to_bytes(group_id)))
 
     def set_namesrv_addr(self, addr):
-        ffi_check(dll.SetPushConsumerNameServerAddress(self._handle, addr.encode('utf-8')))
+        ffi_check(dll.SetPushConsumerNameServerAddress(self._handle, _to_bytes(addr)))
 
     def set_namesrv_domain(self, domain):
-        ffi_check(dll.SetPushConsumerNameServerDomain(self._handle, domain.encode('utf-8')))
+        ffi_check(dll.SetPushConsumerNameServerDomain(self._handle, _to_bytes(domain)))
 
     def set_session_credentials(self, access_key, access_secret, channel):
         ffi_check(dll.SetPushConsumerSessionCredentials(
             self._handle,
-            access_key.encode('utf-8'),
-            access_secret.encode('utf-8'),
-            channel.encode('utf-8')
+            _to_bytes(access_key),
+            _to_bytes(access_secret),
+            _to_bytes(channel)
         ))
 
     def subscribe(self, topic, callback, expression='*'):
@@ -198,7 +211,7 @@ class PushConsumer(object):
 
             return _CConsumeStatus.CONSUME_SUCCESS.value
 
-        ffi_check(dll.Subscribe(self._handle, topic.encode('utf-8'), expression.encode('utf-8')))
+        ffi_check(dll.Subscribe(self._handle, _to_bytes(topic), _to_bytes(expression)))
         self._register_callback(_on_message)
 
     def _register_callback(self, callback):
@@ -224,12 +237,12 @@ class PushConsumer(object):
         ffi_check(dll.SetPushConsumerMessageBatchMaxSize(self._handle, max_size))
 
     def set_instance_name(self, name):
-        ffi_check(dll.SetPushConsumerInstanceName(self._handle, name.encode('utf-8')))
+        ffi_check(dll.SetPushConsumerInstanceName(self._handle, _to_bytes(name)))
 
 
 class PullConsumer(object):
     def __init__(self, group_id):
-        self._handle = dll.CreatePullConsumer(group_id.encode('utf-8'))
+        self._handle = dll.CreatePullConsumer(_to_bytes(group_id))
 
     def __del__(self):
         if self._handle is not None:
@@ -242,20 +255,20 @@ class PullConsumer(object):
         ffi_check(dll.ShutdownPullConsumer(self._handle))
 
     def set_group(self, group_id):
-        ffi_check(dll.SetPullConsumerGroupID(group_id.encode('utf-8')))
+        ffi_check(dll.SetPullConsumerGroupID(_to_bytes(group_id)))
 
     def set_namesrv_addr(self, addr):
-        ffi_check(dll.SetPullConsumerNameServerAddress(self._handle, addr.encode('utf-8')))
+        ffi_check(dll.SetPullConsumerNameServerAddress(self._handle, _to_bytes(addr)))
 
     def set_namesrv_domain(self, domain):
-        ffi_check(dll.SetPullConsumerNameServerDomain(self._handle, domain.encode('utf-8')))
+        ffi_check(dll.SetPullConsumerNameServerDomain(self._handle, _to_bytes(domain)))
 
     def set_session_credentials(self, access_key, access_secret, channel):
         ffi_check(dll.SetPullConsumerSessionCredentials(
             self._handle,
-            access_key.encode('utf-8'),
-            access_secret.encode('utf-8'),
-            channel.encode('utf-8')
+            _to_bytes(access_key),
+            _to_bytes(access_secret),
+            _to_bytes(channel)
         ))
 
     def pull(self, topic, expression='*', max_num=32):
@@ -263,7 +276,7 @@ class PullConsumer(object):
         queue_size = ctypes.c_int()
         ffi_check(dll.FetchSubscriptionMessageQueues(
             self._handle,
-            topic.encode('utf-8'),
+            _to_bytes(topic),
             ctypes.pointer(message_queue),
             ctypes.pointer(queue_size)
         ))
@@ -273,7 +286,7 @@ class PullConsumer(object):
                 pull_res = dll.Pull(
                     self._handle,
                     ctypes.pointer(message_queue[i]),
-                    expression.encode('utf-8'),
+                    _to_bytes(expression),
                     tmp_offset,
                     max_num,
                 )

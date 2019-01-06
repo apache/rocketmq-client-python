@@ -6,13 +6,12 @@ from ctypes import c_char, c_char_p, c_void_p, c_int, c_long, c_longlong, Struct
 from enum import IntEnum
 
 
-_DYLIB_NAMES = {
-    'darwin': 'librocketmq.dylib',
-    'linux': 'librocketmq.so',
-}
-CURR_DIR = os.path.abspath(os.path.dirname(__file__))
-DYLIB_PATH = os.path.join(CURR_DIR, _DYLIB_NAMES[sys.platform.lower()])
-dll = ctypes.cdll.LoadLibrary(DYLIB_PATH)
+_DYLIB_SUFFIX = '.so'
+if sys.platform.lower() == 'darwin':
+    _DYLIB_SUFFIX = '.dylib'
+_CURR_DIR = os.path.abspath(os.path.dirname(__file__))
+_DYLIB_PATH = os.path.join(_CURR_DIR, 'librocketmq' + _DYLIB_SUFFIX)
+dll = ctypes.cdll.LoadLibrary(_DYLIB_PATH)
 
 
 class CtypesEnum(IntEnum):
