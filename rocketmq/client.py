@@ -111,6 +111,12 @@ class Producer(object):
         if self._handle is not None:
             ffi_check(dll.DestroyProducer(self._handle))
 
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, type, value, traceback):
+        self.shutdown()
+
     def send_sync(self, msg):
         cres = _CSendResult()
         ffi_check(dll.SendMessageSync(self._handle, msg, ctypes.pointer(cres)))
@@ -166,6 +172,12 @@ class PushConsumer(object):
     def __del__(self):
         if self._handle is not None:
             ffi_check(dll.DestroyPushConsumer(self._handle))
+
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, type, value, traceback):
+        self.shutdown()
 
     def set_message_model(self, model):
         ffi_check(dll.SetPushConsumerMessageModel(self._handle, model))
@@ -243,6 +255,12 @@ class PullConsumer(object):
     def __del__(self):
         if self._handle is not None:
             ffi_check(dll.DestroyPullConsumer(self._handle))
+
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, type, value, traceback):
+        self.shutdown()
 
     def start(self):
         ffi_check(dll.StartPullConsumer(self._handle))
