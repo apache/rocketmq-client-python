@@ -11,6 +11,7 @@ matrix:
         - while sleep 300; do echo "=====[ $SECONDS seconds, still building... ]====="; done &
         - docker run --rm -it -v `pwd`:/io -w /io quay.io/pypa/manylinux1_x86_64 /io/manylinux.sh >> build.log 2>&1
         - ls dist/
+        - sudo rm -rf build *.egg-info
         - pip install --force-reinstall dist/*.whl
         - pip install -Ur dev-requirements.txt
         - pytest -v tests
@@ -23,6 +24,7 @@ matrix:
         - while sleep 300; do echo "=====[ $SECONDS seconds, still building... ]====="; done &
         - docker run --rm -it -v `pwd`:/io -w /io quay.io/pypa/manylinux1_x86_64 /io/manylinux.sh >> build.log 2>&1
         - ls dist/
+        - sudo rm -rf build *.egg-info
         - pip install --force-reinstall dist/*.whl
         - pip install -Ur dev-requirements.txt
         - pytest -v tests
