@@ -70,3 +70,8 @@ docs/_build/
 .vagrant/
 
 .mypy_cache/
+
+# dylib
+rocketmq/*.dylib
+rocketmq/*.so
+rocketmq/*.dll
