@@ -2,6 +2,7 @@
 import os
 import sys
 import ctypes
+from ctypes.util import find_library
 from ctypes import c_char, c_char_p, c_void_p, c_int, c_long, c_longlong, Structure, POINTER
 from enum import IntEnum
 
@@ -10,7 +11,12 @@ _DYLIB_SUFFIX = '.so'
 if sys.platform.lower() == 'darwin':
     _DYLIB_SUFFIX = '.dylib'
 _CURR_DIR = os.path.abspath(os.path.dirname(__file__))
-_DYLIB_PATH = os.path.join(_CURR_DIR, 'librocketmq' + _DYLIB_SUFFIX)
+_PKG_DYLIB_PATH = os.path.join(_CURR_DIR, 'librocketmq' + _DYLIB_SUFFIX)
+_DYLIB_PATH = find_library('rocketmq')
+if os.path.exists(_PKG_DYLIB_PATH):
+    # Prefer packaged librocketmq dylib
+    _DYLIB_PATH = _PKG_DYLIB_PATH
+
 dll = ctypes.cdll.LoadLibrary(_DYLIB_PATH)
 
 
