@@ -28,8 +28,6 @@ matrix:
         - pip install --force-reinstall dist/*.whl
         - pip install -Ur dev-requirements.txt
         - pytest -v tests
-        # Build source distribution
-        - if [[ "${TRAVIS_TAG:-}" != "" ]]; then python setup.py sdist; fi
     - os: osx
       osx_image: xcode9.3
       compiler: clang
@@ -39,7 +37,7 @@ matrix:
         - while sleep 300; do echo "=====[ $SECONDS seconds, still building... ]====="; done &
         - cd /tmp/rocketmq-client-cpp && bash build.sh >> build.log 2>&1 && cd -
         - cp /tmp/rocketmq-client-cpp/bin/librocketmq.dylib rocketmq/
-        - python3 setup.py bdist_wheel
+        - python3 setup.py sdist bdist_wheel
         - ls dist/
         - python3 -m pip install --force-reinstall dist/*.whl
         - python3 -m pip install -Ur dev-requirements.txt
