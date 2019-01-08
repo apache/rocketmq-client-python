@@ -39,6 +39,7 @@ def test_push_consumer(producer, push_consumer):
     def on_message(msg):
         stop_event.set()
         assert msg.body.decode('utf-8') == 'XXXX'
+        assert msg.properties
 
     push_consumer.subscribe('test', on_message)
     push_consumer.start()

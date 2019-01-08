@@ -9,6 +9,7 @@ from .ffi import (
     _CConsumeStatus, MessageModel,
 )
 from .exceptions import ffi_check, PushConsumerStartFailed
+from .consts import MessageProperty
 
 
 PY2 = sys.version_info[0] == 2
@@ -82,6 +83,12 @@ class RecvMessage(object):
         self.queue_offset = dll.GetMessageQueueOffset(handle)
         self.commit_log_offset = dll.GetMessageCommitLogOffset(handle)
         self.prepared_transaction_offset = dll.GetMessagePreparedTransactionOffset(handle)
+
+        properties = {}
+        for prop in MessageProperty:
+            val = dll.GetMessageProperty(handle, _to_bytes(prop.value))
+            properties[prop] = val
+        self.properties = properties
 
     def __str__(self):
         return self.body.decode('utf-8')
