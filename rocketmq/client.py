@@ -69,26 +69,72 @@ def maybe_decode(val):
 
 class RecvMessage(object):
     def __init__(self, handle):
-        self.topic = maybe_decode(dll.GetMessageTopic(handle))
-        self.tags = dll.GetMessageTags(handle)
-        self.keys = dll.GetMessageKeys(handle)
-        self.body = dll.GetMessageBody(handle)
-        self.id = maybe_decode(dll.GetMessageId(handle))
-        self.delay_time_level = dll.GetMessageDelayTimeLevel(handle)
-        self.queue_id = dll.GetMessageQueueId(handle)
-        self.reconsume_times = dll.GetMessageReconsumeTimes(handle)
-        self.store_size = dll.GetMessageStoreSize(handle)
-        self.born_timestamp = dll.GetMessageBornTimestamp(handle)
-        self.store_timestamp = dll.GetMessageStoreTimestamp(handle)
-        self.queue_offset = dll.GetMessageQueueOffset(handle)
-        self.commit_log_offset = dll.GetMessageCommitLogOffset(handle)
-        self.prepared_transaction_offset = dll.GetMessagePreparedTransactionOffset(handle)
+        self._handle = handle
 
-        properties = {}
-        for prop in MessageProperty:
-            val = dll.GetMessageProperty(handle, _to_bytes(prop.value))
-            properties[prop] = val
-        self.properties = properties
+    @property
+    def topic(self):
+        return maybe_decode(dll.GetMessageTopic(self._handle))
+
+    @property
+    def tags(self):
+        return dll.GetMessageTags(self._handle)
+
+    @property
+    def keys(self):
+        return dll.GetMessageKeys(self._handle)
+
+    @property
+    def body(self):
+        return dll.GetMessageBody(self._handle)
+
+    @property
+    def id(self):
+        return maybe_decode(dll.GetMessageId(self._handle))
+
+    @property
+    def delay_time_level(self):
+        return dll.GetMessageDelayTimeLevel(self._handle)
+
+    @property
+    def queue_id(self):
+        return dll.GetMessageQueueId(self._handle)
+
+    @property
+    def reconsume_times(self):
+        return dll.GetMessageReconsumeTimes(self._handle)
+
+    @property
+    def store_size(self):
+        return dll.GetMessageStoreSize(self._handle)
+
+    @property
+    def born_timestamp(self):
+        return dll.GetMessageBornTimestamp(self._handle)
+
+    @property
+    def store_timestamp(self):
+        return dll.GetMessageStoreTimestamp(self._handle)
+
+    @property
+    def queue_offset(self):
+        return dll.GetMessageQueueOffset(self._handle)
+
+    @property
+    def commit_log_offset(self):
+        return dll.GetMessageCommitLogOffset(self._handle)
+
+    @property
+    def prepared_transaction_offset(self):
+        return dll.GetMessagePreparedTransactionOffset(self._handle)
+
+    def get_property(self, prop):
+        if isinstance(prop, MessageProperty):
+            prop = prop.value
+        val = dll.GetMessageProperty(self._handle, _to_bytes(prop))
+        return val
+
+    def __getitem__(self, key):
+        return self.get_property(key)
 
     def __str__(self):
         return self.body.decode('utf-8')

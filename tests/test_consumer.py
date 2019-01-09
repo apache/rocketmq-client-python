@@ -5,6 +5,7 @@ import threading
 import pytest
 from rocketmq.client import Message, SendStatus
 from rocketmq.exceptions import PushConsumerStartFailed
+from rocketmq.consts import MessageProperty
 
 
 def _send_test_msg(producer):
@@ -39,7 +40,7 @@ def test_push_consumer(producer, push_consumer):
     def on_message(msg):
         stop_event.set()
         assert msg.body.decode('utf-8') == 'XXXX'
-        assert msg.properties
+        assert msg[MessageProperty.KEYS]
 
     push_consumer.subscribe('test', on_message)
     push_consumer.start()
