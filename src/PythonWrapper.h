@@ -21,6 +21,7 @@
 #include "CSendResult.h"
 #include "CProducer.h"
 #include "CPushConsumer.h"
+#include "CPullConsumer.h"
 #include <boost/python.hpp>
 
 using namespace boost::python;
@@ -39,8 +40,8 @@ typedef struct _PyMessageExt_ {
     CMessageExt *pMessageExt;
 } PyMessageExt;
 
-#define PYTHON_CLIENT_VERSION "1.0.0"
-#define PYCLI_BUILD_DATE "16-10-2018"
+#define PYTHON_CLIENT_VERSION "1.2.0"
+#define PYCLI_BUILD_DATE "04-12-2018"
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,9 +72,11 @@ int PyDestroyProducer(void *producer);
 int PyStartProducer(void *producer);
 int PyShutdownProducer(void *producer);
 int PySetProducerNameServerAddress(void *producer, const char *namesrv);
+int PySetProducerNameServerDomain(void *producer, const char *domain);
 int PySetProducerInstanceName(void *producer, const char *instanceName);
 int PySetProducerSessionCredentials(void *producer, const char *accessKey, const char *secretKey, const char *channel);
 PySendResult PySendMessageSync(void *producer, void *msg);
+int PySendMessageOneway(void *producer, void *msg);
 
 //sendResult
 const char *PyGetSendResultMsgID(CSendResult &sendResult);
@@ -84,14 +87,19 @@ int PyDestroyPushConsumer(void *consumer);
 int PyStartPushConsumer(void *consumer);
 int PyShutdownPushConsumer(void *consumer);
 int PySetPushConsumerNameServerAddress(void *consumer, const char *namesrv);
+int PySetPushConsumerNameServerDomain(void *consumer, const char *domain);
 int PySubscribe(void *consumer, const char *topic, const char *expression);
-int PyRegisterMessageCallback(void *consumer, PyObject *pCallback);
+int PyRegisterMessageCallback(void *consumer, PyObject *pCallback, object args);
 int PythonMessageCallBackInner(CPushConsumer *consumer, CMessageExt *msg);
 int PySetPushConsumerThreadCount(void *consumer, int threadCount);
 int PySetPushConsumerMessageBatchMaxSize(void *consumer, int batchSize);
 int PySetPushConsumerInstanceName(void *consumer, const char *instanceName);
 int PySetPushConsumerSessionCredentials(void *consumer, const char *accessKey, const char *secretKey,
                                      const char *channel);
+
+//push consumer
+int PySetPullConsumerNameServerDomain(void *consumer, const char *domain);
+
 #ifdef __cplusplus
 };
 #endif

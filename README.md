@@ -3,14 +3,8 @@
 * RocketMQ Python client is developed on top of [rocketmq-client-cpp](https://github.com/apache/rocketmq-client-cpp), which has been proven robust and widely adopted within Alibaba Group by many business units for more than three years.
 
 ----------
-## Features
-At present, this SDK supports
-* sending message in synchronous mode
-* consuming message using push model
-
-----------
 ## Quick Start
-* Step-by-step instruction are provided in [RocketMQ Client Python Introduction](https://github.com/apache/rocketmq-client-python/blob/master/doc/Introduction.md)
+* Step-by-step instruction are provided in [RocketMQ Client Python Introduction](https://github.com/apache/rocketmq-client-python/blob/master/doc/Introduction.md).
 * Consult [RocketMQ Quick Start](https://rocketmq.apache.org/docs/quick-start/) to setup rocketmq broker and nameserver.
 
 ----------
