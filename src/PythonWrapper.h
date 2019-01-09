@@ -99,6 +99,8 @@ int PySetPushConsumerSessionCredentials(void *consumer, const char *accessKey, c
 
 //push consumer
 int PySetPullConsumerNameServerDomain(void *consumer, const char *domain);
+//version
+const char *PyGetVersion();
 
 #ifdef __cplusplus
 };
