@@ -36,6 +36,7 @@ class _CStatus(CtypesEnum):
     PRODUCER_SEND_SYNC_FAILED = 11
     PRODUCER_SEND_ONEWAY_FAILED = 12
     PRODUCER_SEND_ORDERLY_FAILED = 13
+    PRODUCER_SEND_ASYNC_FAILED = 14
     # push consumer
     PUSHCONSUMER_START_FAILED = 20
     # pull consumer
@@ -72,6 +73,16 @@ class _CMessageQueue(Structure):
         ('topic', c_char * 512),
         ('brokerName', c_char * 256),
         ('queueId', c_int),
+    ]
+
+
+class _CMQException(Structure):
+    _fields_ = [
+        ('error', c_int),
+        ('line', c_int),
+        ('file', c_char * 512),
+        ('msg', c_char * 512),
+        ('type', c_char * 512),
     ]
 
 
@@ -151,6 +162,8 @@ dll.GetMessagePreparedTransactionOffset.restype = c_longlong
 # Producer
 
 QUEUE_SELECTOR_CALLBACK = ctypes.CFUNCTYPE(c_int, c_int, c_void_p, c_void_p)
+SEND_SUCCESS_CALLBACK = ctypes.CFUNCTYPE(None, POINTER(_CSendResult))
+SEND_EXCEPTION_CALLBACK = ctypes.CFUNCTYPE(None, _CMQException)
 
 dll.CreateProducer.argtypes = [c_char_p]
 dll.CreateProducer.restype = c_void_p
@@ -184,6 +197,8 @@ dll.SetProducerMaxMessageSize.argtypes = [c_void_p, c_int]
 dll.SetProducerMaxMessageSize.restype = _CStatus
 dll.SendMessageSync.argtypes = [c_void_p, c_void_p, POINTER(_CSendResult)]
 dll.SendMessageSync.restype = _CStatus
+dll.SendMessageAsync.argtypes = [c_void_p, c_void_p, SEND_SUCCESS_CALLBACK, SEND_EXCEPTION_CALLBACK]
+dll.SendMessageAsync.restype = _CStatus
 dll.SendMessageOneway.argtypes = [c_void_p, c_void_p]
 dll.SendMessageOneway.restype = _CStatus
 dll.SendMessageOrderly.argtypes = [c_void_p, c_void_p, QUEUE_SELECTOR_CALLBACK, c_void_p, c_int, POINTER(_CSendResult)]

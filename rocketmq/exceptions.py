@@ -58,6 +58,15 @@ class ProducerSendOrderlyFailed(ProducerException):
     pass
 
 
+class ProducerSendAsyncFailed(ProducerException):
+    def __init__(self, msg, error, file, line, type):
+        super(ProducerSendAsyncFailed, self).__init__(msg)
+        self.error = error
+        self.file = file
+        self.line = line
+        self.type = type
+
+
 class ConsumerException(RocketMQException):
     pass
 
