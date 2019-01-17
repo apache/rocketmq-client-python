@@ -25,3 +25,12 @@ def test_producer_send_oneway(producer):
     msg.set_tags('XXX')
     msg.set_body('XXXX')
     producer.send_oneway(msg)
+
+
+def test_producer_send_orderly(producer):
+    msg = Message('test')
+    msg.set_keys('XXX')
+    msg.set_tags('XXX')
+    msg.set_body('XXXX')
+    ret = producer.send_orderly(msg, 1)
+    assert ret.status == SendStatus.OK

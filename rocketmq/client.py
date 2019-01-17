@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import ctypes
+from ctypes import c_void_p, c_int, POINTER
 from enum import IntEnum
 from collections import namedtuple
 
@@ -152,6 +153,11 @@ class RecvMessage(object):
         )
 
 
+def hashing_queue_selector(mq_size, msg, arg):
+    arg_int = ctypes.cast(arg, POINTER(c_int))
+    return arg_int[0] % mq_size
+
+
 class Producer(object):
     def __init__(self, group_id, timeout=None, compress_level=None, max_message_size=None):
         self._handle = dll.CreateProducer(_to_bytes(group_id))
@@ -217,6 +223,35 @@ class Producer(object):
 
     def send_oneway(self, msg):
         ffi_check(dll.SendMessageOneway(self._handle, msg))
+
+    def send_orderly(self, msg, arg,
+                     retry_times=3,
+                     queue_selector=hashing_queue_selector):
+        from .ffi import QUEUE_SELECTOR_CALLBACK
+
+        def _select_queue(mq_size, cmsg, user_arg):
+            msg = RecvMessage(cmsg)
+            return queue_selector(mq_size, msg, user_arg)
+
+        cres = _CSendResult()
+        queue_select_callback = QUEUE_SELECTOR_CALLBACK(_select_queue)
+        self._callback_refs.append(queue_select_callback)
+        try:
+            ffi_check(dll.SendMessageOrderly(
+                self._handle,
+                msg,
+                queue_select_callback,
+                ctypes.cast(ctypes.pointer(ctypes.c_int(arg)), c_void_p),
+                retry_times,
+                ctypes.pointer(cres)
+            ))
+        finally:
+            self._callback_refs.remove(queue_select_callback)
+        return SendResult(
+            SendStatus(cres.sendStatus),
+            cres.msgId.decode('utf-8'),
+            cres.offset
+        )
 
     def set_group(self, group_name):
         ffi_check(dll.SetProducerGroupName(_to_bytes(group_name)))
@@ -375,8 +410,8 @@ class PullConsumer(object):
         ))
 
     def pull(self, topic, expression='*', max_num=32):
-        message_queue = ctypes.POINTER(_CMessageQueue)()
-        queue_size = ctypes.c_int()
+        message_queue = POINTER(_CMessageQueue)()
+        queue_size = c_int()
         ffi_check(dll.FetchSubscriptionMessageQueues(
             self._handle,
             _to_bytes(topic),
