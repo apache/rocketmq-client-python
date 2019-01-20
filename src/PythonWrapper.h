@@ -40,6 +40,11 @@ typedef struct _PyMessageExt_ {
     CMessageExt *pMessageExt;
 } PyMessageExt;
 
+typedef struct _PyUserData_ {
+    PyObject *pyObject;
+    void *pData;
+} PyUserData;
+
 #define PYTHON_CLIENT_VERSION "1.2.0"
 #define PYCLI_BUILD_DATE "04-12-2018"
 
@@ -77,7 +82,9 @@ int PySetProducerInstanceName(void *producer, const char *instanceName);
 int PySetProducerSessionCredentials(void *producer, const char *accessKey, const char *secretKey, const char *channel);
 PySendResult PySendMessageSync(void *producer, void *msg);
 int PySendMessageOneway(void *producer, void *msg);
-PySendResult PySendMessageOrderly(void *producer, void *msg , int autoRetryTimes, PyObject *args, PyObject *callback);
+// PySendResult PySendMessageOrderly(void *producer, void *msg , int autoRetryTimes, PyObject *args, PyObject *callback);
+PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes, void *args, PyObject *queueSelector);
+int PyOrderlyCallbackInner(int size, CMessage *msg, void *args);
 
 //sendResult
 const char *PyGetSendResultMsgID(CSendResult &sendResult);

@@ -92,3 +92,15 @@
   - input<br />
     producer : a producer instance <br />
     msg : a message instance <br />
+
+* SendMessageOrderly(producer, msg, autoRetryTimes,arg, queueSelectorCallback)
+  - function description<br />
+    send a message orderly
+
+  - input<br />
+    producer : a producer instance <br />
+    msg : a message instance <br />
+    autoRetryTimes: retry times when send fail<br />
+    arg: send args<br />
+    queueSelectorCallback: callback for which queue choose to send message to. return queue index start from 0 to (max queue count -1)
+
