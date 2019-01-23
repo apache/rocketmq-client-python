@@ -63,6 +63,6 @@ after_failure:
 after_success:
   - |
     if [[ "${TRAVIS_TAG:-}" != "" && $TRAVIS_PYTHON_VERSION != "2.7" ]]; then
-      sudo python -m pip install twine;
+      sudo python -m pip install -U twine;
       twine upload --skip-existing dist/*;
     fi
