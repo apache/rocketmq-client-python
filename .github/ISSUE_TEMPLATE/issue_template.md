@@ -25,6 +25,12 @@ Please ensure that your bug report is clear and that it is complete. Otherwise, 
 
 2. Please tell us about your environment:
 
+ - What is your OS?
+
+ - What is your client version?
+
+ - What is your RocketMQ version?
+
 3. Other information (e.g. detailed explanation, logs, related issues, suggestions on how to fix, etc):
 
 **FEATURE REQUEST**
