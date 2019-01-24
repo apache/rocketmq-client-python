@@ -153,6 +153,24 @@ int PySendMessageOneway(void *producer, void *msg) {
     return SendMessageOneway((CProducer *) producer, (CMessage *) msg);
 }
 
+PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes, void *args, PyObject *queueSelector) {
+    PySendResult ret;
+    CSendResult result;
+    PyUserData userData = {queueSelector,args};
+    SendMessageOrderly((CProducer *) producer, (CMessage *) msg, &PyOrderlyCallbackInner, &userData, autoRetryTimes, &result);
+    ret.sendStatus = result.sendStatus;
+    ret.offset = result.offset;
+    strncpy(ret.msgId, result.msgId, MAX_MESSAGE_ID_LENGTH - 1);
+    ret.msgId[MAX_MESSAGE_ID_LENGTH - 1] = 0;
+    return ret;
+}
+
+int PyOrderlyCallbackInner(int size, CMessage *msg, void *args) {
+    PyUserData *userData = (PyUserData *)args;
+    int index = boost::python::call<int>(userData->pyObject, size, (void *) msg, userData->pData);
+    return index;
+}
+
 //SendResult
 const char *PyGetSendResultMsgID(CSendResult &sendResult) {
     return (const char *) (sendResult.msgId);
@@ -294,6 +312,7 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("SetProducerSessionCredentials", PySetProducerSessionCredentials);
     def("SendMessageSync", PySendMessageSync);
     def("SendMessageOneway", PySendMessageOneway);
+    def("SendMessageOrderly", PySendMessageOrderly);
 
     //For Consumer
     def("CreatePushConsumer", PyCreatePushConsumer, return_value_policy<return_opaque_pointer>());

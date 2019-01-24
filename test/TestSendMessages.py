@@ -19,7 +19,8 @@ import __init__
 from librocketmqclientpython import *
 import time
 
-topic = 'test'
+topic = 'test-topic-normal'
+topic_orderly = 'test-topic-normal-orderly'
 name_srv = '127.0.0.1:9876'
 
 
@@ -198,9 +199,23 @@ def send_delay_messages(producer, topic, count):
         DestroyMessage(msg)
         print 'msg id =' + result.GetMsgId()
 
+def send_message_orderly(count):
+    key = 'rmq-key'
+    print 'start sending order-ly message'
+    tag = 'test'
+    for n in range(count):
+        body = 'hi rmq orderly-message, now is' + str(n)
+        msg = CreateMessage(topic_orderly)
+        SetMessageBody(msg, body)
+        SetMessageKeys(msg, key)
+        SetMessageTags(msg, tag)
 
+        result = SendMessageOrderly(producer, msg, 1, None, calc_which_queue_to_send)
+        DestroyMessage(msg)
+        print 'msg id =' + result.GetMsgId()
+
+def calc_which_queue_to_send(size, msg, arg): ## it is index start with 0....
+    return 0
+    
 if __name__ == '__main__':
-    # print GetVersion()
-    while True:
-        send_messages_oneway(1)
-        time.sleep(1)
+    send_message_orderly(10)

@@ -21,10 +21,13 @@ from librocketmqclientpython import *
 import time
 import sys
 
-topic = 'test'
+topic = 'test-topic-normal'
+topic_orderly = 'test-topic-normal-orderly'
+
 name_srv = '127.0.0.1:9876'
 tag = 'rmq-tag'
 consumer_group = 'test-consumer-group'
+consumer_group_orderly = 'test-topic-normal-orderly_group'
 totalMsg = 0
 
 
@@ -50,7 +53,7 @@ def consumer_message(msg, args):
     return 0
 
 
-def init_producer(_group, _topic, _tag):
+def init_consumer(_group, _topic, _tag):
     consumer = CreatePushConsumer(_group)
     SetPushConsumerNameServerAddress(consumer, name_srv)
     SetPushConsumerThreadCount(consumer, 1)
@@ -62,7 +65,19 @@ def init_producer(_group, _topic, _tag):
 
 
 def start_one_consumer(_group, _topic, _tag):
-    consumer = init_producer(_group, _topic, _tag)
+    consumer = init_consumer(_group, _topic, _tag)
+    i = 1
+    while i <= 10:
+        print 'clock: ' + str(i)
+        i += 1
+        time.sleep(10)
+
+    ShutdownPushConsumer(consumer)
+    DestroyPushConsumer(consumer)
+    print("Consumer Down....")
+
+def start_orderly_consumer():
+    consumer = init_consumer(consumer_group_orderly, topic_orderly, "*")
     i = 1
     while i <= 10:
         print 'clock: ' + str(i)
@@ -75,4 +90,4 @@ def start_one_consumer(_group, _topic, _tag):
 
 
 if __name__ == '__main__':
-    start_one_consumer(consumer_group, topic, '*')
+    start_orderly_consumer()

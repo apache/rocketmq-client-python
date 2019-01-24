@@ -5,4 +5,4 @@ cmake-build-*/
 *.so
 
 bin/
-
+.vscode/
