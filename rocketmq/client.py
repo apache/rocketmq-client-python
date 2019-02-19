@@ -12,6 +12,8 @@ from .exceptions import ffi_check, PushConsumerStartFailed, ProducerSendAsyncFai
 from .consts import MessageProperty
 
 
+__all__ = ['SendStatus', 'Message', 'RecvMessage', 'Producer', 'PushConsumer', 'PullConsumer']
+
 PY2 = sys.version_info[0] == 2
 if PY2:
     text_type = unicode
