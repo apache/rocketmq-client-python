@@ -15,79 +15,137 @@
 # * limitations under the License.
 # */
 
-import __init__
-from librocketmqclientpython import *
-
+import unittest
+import json
 import time
-import sys
-
-topic = 'test-topic-normal'
-topic_orderly = 'test-topic-normal-orderly'
-
-name_srv = '127.0.0.1:9876'
-tag = 'rmq-tag'
-consumer_group = 'test-consumer-group'
-consumer_group_orderly = 'test-topic-normal-orderly_group'
-totalMsg = 0
-
-
-def sigint_handler(signum, frame):
-    global is_sigint_up
-    is_sigint_up = True
-    sys.exit(0)
+from librocketmqclientpython import \
+    CreateProducer, SetProducerNameServerAddress, StartProducer, \
+    CreateMessage, SetMessageBody, SetMessageTags, SendMessageSync, SetMessageProperty, SetMessageKeys, DestroyMessage, \
+    CreatePushConsumer, SetPushConsumerNameServerAddress, SetPushConsumerThreadCount, \
+    Subscribe, RegisterMessageCallback, StartPushConsumer, ShutdownPushConsumer, DestroyPushConsumer, \
+    GetMessageTopic, GetMessageTags, GetMessageBody, GetMessageId, GetMessageKeys, GetMessageProperty, SendMessageOrderly, \
+    DestroyProducer
+from config import name_srv, topic, topic_orderly, tag, key, consumer_group, consumer_group_orderly
+from utils import output, randstr
 
 
-def consumer_message(msg, args):
-    global totalMsg
-    totalMsg += 1
-    print 'total count %d' % totalMsg
-    print 'topic=%s' % GetMessageTopic(msg)
-    print 'tag=%s' % GetMessageTags(msg)
-    print 'body=%s' % GetMessageBody(msg)
-    print 'msg id=%s' % GetMessageId(msg)
+class Test2ConsumeMessages(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.producer = CreateProducer('TestProducer')
+        SetProducerNameServerAddress(cls.producer, name_srv)
+        StartProducer(cls.producer)
 
-    print 'map.keys %s' % GetMessageKeys(msg)
+    @classmethod
+    def tearDownClass(cls):
+        DestroyProducer(cls.producer)
 
-    print 'map.name %s' % GetMessageProperty(msg, 'name')
-    print 'map.id %s' % GetMessageProperty(msg, 'id')
-    return 0
+    def send_message(self, data, orderly=False):
+        msg = CreateMessage(data['topic'])
+        SetMessageBody(msg, data['body'])
+        SetMessageTags(msg, data['tag'])
+        SetMessageKeys(msg, data['key'])
+        SetMessageProperty(msg, 'id', data['map_id'])
+        SetMessageProperty(msg, 'name', data['map_name'])
 
+        if orderly:
+            SendMessageOrderly(self.producer, msg, 1, None, lambda size, msg, arg: 0)
+        else:
+            SendMessageSync(self.producer, msg)
+        DestroyMessage(msg)
 
-def init_consumer(_group, _topic, _tag):
-    consumer = CreatePushConsumer(_group)
-    SetPushConsumerNameServerAddress(consumer, name_srv)
-    SetPushConsumerThreadCount(consumer, 1)
-    Subscribe(consumer, _topic, _tag)
-    RegisterMessageCallback(consumer, consumer_message, None)
-    StartPushConsumer(consumer)
-    print 'consumer is ready...'
-    return consumer
+        output('sent: ' + json.dumps(data))
 
+    def init_consumer(self, group, topic, tag, callback):
+        consumer = CreatePushConsumer(group)
+        SetPushConsumerNameServerAddress(consumer, name_srv)
+        SetPushConsumerThreadCount(consumer, 1)
+        Subscribe(consumer, topic, tag)
+        RegisterMessageCallback(consumer, callback, None)
+        StartPushConsumer(consumer)
+        return consumer
 
-def start_one_consumer(_group, _topic, _tag):
-    consumer = init_consumer(_group, _topic, _tag)
-    i = 1
-    while i <= 10:
-        print 'clock: ' + str(i)
-        i += 1
-        time.sleep(10)
+    def shutdown_consumer(self, consumer):
+        ShutdownPushConsumer(consumer)
+        DestroyPushConsumer(consumer)
 
-    ShutdownPushConsumer(consumer)
-    DestroyPushConsumer(consumer)
-    print("Consumer Down....")
+    def check_message(self, msg, send):
+        data = {
+            'msg_id': GetMessageId(msg),
+            'topic': GetMessageTopic(msg),
+            'body': GetMessageBody(msg),
+            'tag': GetMessageTags(msg),
+            'key': GetMessageKeys(msg),
+            'map_id': GetMessageProperty(msg, 'id'),
+            'map_name': GetMessageProperty(msg, 'name'),
+        }
+        output('message: ' + ','.join(key + '=' + value for [key, value] in data.items()))
 
-def start_orderly_consumer():
-    consumer = init_consumer(consumer_group_orderly, topic_orderly, "*")
-    i = 1
-    while i <= 10:
-        print 'clock: ' + str(i)
-        i += 1
-        time.sleep(10)
+        self.assertIsInstance(data['body'], str)
+        return 0
 
-    ShutdownPushConsumer(consumer)
-    DestroyPushConsumer(consumer)
-    print("Consumer Down....")
+    def test_one_consumer(self):
+        send = dict(
+            topic=topic,
+            body=randstr(6),
+            tag=tag,
+            key=key,
+            map_id=randstr(6),
+            map_name=randstr(6),
+        )
+        self.send_message(send)
 
+        got_msg = dict(value=False)
 
-if __name__ == '__main__':
-    start_orderly_consumer()
+        def callback(msg, args):
+            if not got_msg['value']:
+                got_msg['value'] = True
+                self.check_message(msg, send)
+            return 0
+        consumer = self.init_consumer(consumer_group, send['topic'], send['tag'], callback)
+
+        i = 1
+        while i <= 20:
+            output('clock: ' + str(i))
+            i += 1
+            if got_msg['value']:
+                break
+            time.sleep(1)
+
+        self.shutdown_consumer(consumer)
+        output("Consumer Down....")
+
+        self.assertEqual(got_msg['value'], True)
+
+    def test_orderly_consumer(self):
+        send = dict(
+            topic=topic_orderly,
+            body=randstr(6),
+            tag='*',
+            key=key,
+            map_id=randstr(6),
+            map_name=randstr(6),
+        )
+        self.send_message(send, orderly=True)
+
+        got_msg = dict(value=False)
+
+        def callback(msg, args):
+            if not got_msg['value']:
+                got_msg['value'] = True
+                self.check_message(msg, send)
+            return 0
+        consumer = self.init_consumer(consumer_group_orderly, send['topic'], send['tag'], callback)
+
+        i = 1
+        while i <= 20:
+            output('clock: ' + str(i))
+            i += 1
+            if got_msg['value']:
+                break
+            time.sleep(1)
+
+        self.shutdown_consumer(consumer)
+        output("Consumer Down....")
+
+        self.assertEqual(got_msg['value'], True)

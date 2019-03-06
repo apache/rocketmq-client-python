@@ -15,207 +15,145 @@
 # * limitations under the License.
 # */
 
-import __init__
-from librocketmqclientpython import *
-import time
-
-topic = 'test-topic-normal'
-topic_orderly = 'test-topic-normal-orderly'
-name_srv = '127.0.0.1:9876'
-
-
-def init_producer():
-    producer = CreateProducer('TestProducer')
-    SetProducerNameServerAddress(producer, name_srv)
-    StartProducer(producer)
-    return producer
+import unittest
+from utils import timestr, output
+from librocketmqclientpython import CreateProducer, SetProducerNameServerAddress, StartProducer, \
+    CreateMessage, SetMessageBody, SendMessageSync, DestroyMessage, SendResult, CSendStatus, \
+    SetMessageProperty, SetMessageTags, SetMessageKeys, SendMessageOneway, SetDelayTimeLevel, SendMessageOrderly, \
+    DestroyProducer
+from config import name_srv, topic, topic_orderly, tag, key
 
 
-producer = init_producer()
-tag = 'rmq-tag'
-key = 'rmq-key'
+class Test1SendMessages(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.producer = CreateProducer('TestProducer')
+        cls.set_ns_result = SetProducerNameServerAddress(cls.producer, name_srv)
+        cls.start_result = StartProducer(cls.producer)
 
+    @classmethod
+    def tearDownClass(cls):
+        DestroyProducer(cls.producer)
 
-def send_messages_sync(count):
-    for a in range(count):
-        print 'start sending...'
-        body = 'hi rmq, now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print '[RMQ-PRODUCER]start sending...done, msg id = ' + \
-            result.GetMsgId()
+    def send_message_sync(self, sending_info='', set_message=None):
+        for i in range(5):
+            output('sending sync ' + sending_info + '... ', end='')
 
+            msg = CreateMessage(topic)
+            SetMessageBody(msg, 'hi rmq, now is ' + timestr())
+            if set_message:
+                set_message(msg)
 
-def send_messages_sync_with_map(count):
-    print 'sending message with properties...id, name'
-    for a in range(count):
-        body = 'hi rmq, now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
+            result = SendMessageSync(self.producer, msg)
+            msg_id = result.GetMsgId()
+            DestroyMessage(msg)
 
-        SetMessageProperty(msg, 'name', 'test')
-        SetMessageProperty(msg, 'id', str(time.time()))
+            output('done, msg_id=' + msg_id)
 
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print '[RMQ-PRODUCER]start sending...done, msg id = ' + \
-            result.GetMsgId()
+            self.assertIsInstance(result, SendResult)
+            # self.assertEqual(result.sendStatus, CSendStatus.E_SEND_OK)
+            self.assertIsInstance(msg_id, str, 'message id should be a string')
 
+    def send_message_delay(self, sending_info='', set_message=None):
+        for i in range(5):
+            output('sending delay ' + sending_info + '... ', end='')
 
-def send_messages_with_tag_sync(count):
-    print 'sending message with tag...' + tag
-    for a in range(count):
-        body = 'hi rmq, now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
-        SetMessageTags(msg, tag)
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print 'msg id = ' + result.GetMsgId()
+            msg = CreateMessage(topic)
+            SetMessageBody(msg, 'hi rmq, now is ' + timestr())
+            if set_message:
+                set_message(msg)
 
+            SetDelayTimeLevel(msg, 5)
 
-def send_messages_with_tag_and_map_sync(count):
-    print 'sending message with tag...' + tag + ' and properties id, name'
-    for a in range(count):
-        body = 'hi rmq, now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
+            result = SendMessageSync(self.producer, msg)
+            msg_id = result.GetMsgId()
+            DestroyMessage(msg)
 
-        SetMessageProperty(msg, 'name', 'test')
-        SetMessageProperty(msg, 'id', str(time.time()))
+            output('done, msg_id=' + msg_id)
 
-        SetMessageTags(msg, tag)
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print 'msg id = ' + result.GetMsgId()
+            self.assertIsInstance(result, SendResult)
+            # self.assertEqual(result.sendStatus, CSendStatus.E_SEND_OK)
+            self.assertIsInstance(msg_id, str, 'message id should be a string')
 
+    def send_message_oneway(self, sending_info='', set_message=None):
+        for i in range(5):
+            output('sending oneway ' + sending_info + '... ', end='')
 
-def send_messages_with_key_sync(count):
-    print 'sending message with keys...' + key
-    for a in range(count):
-        body = 'hi rmq, now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
-        SetMessageKeys(msg, key)
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print 'msg id = ' + result.GetMsgId()
+            msg = CreateMessage(topic)
+            SetMessageBody(msg, 'hi rmq, now is ' + timestr())
+            if set_message:
+                set_message(msg)
 
+            result = SendMessageOneway(self.producer, msg)
+            DestroyMessage(msg)
 
-def send_messages_with_key_and_map_sync(count):
-    print 'sending message with keys...' + key + ' and properties id, name'
-    for a in range(count):
-        body = 'hi rmq, now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
-        SetMessageKeys(msg, key)
+            self.assertIsInstance(result, int)
+            output('done, result=' + str(result))
 
-        SetMessageProperty(msg, 'name', 'test')
-        SetMessageProperty(msg, 'id', str(time.time()))
+    def send_message_orderly(self, sending_info='', set_message=None):
+        for i in range(5):
+            output('sending orderly ' + sending_info + '... ', end='')
 
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print 'msg id = ' + result.GetMsgId()
+            msg = CreateMessage(topic_orderly)
+            SetMessageBody(msg, 'hi rmq orderly-message, now is ' + timestr())
+            if set_message:
+                set_message(msg)
 
+            result = SendMessageOrderly(self.producer, msg, 1, None, self.calc_which_queue_to_send)
+            msg_id = result.GetMsgId()
 
-def send_messages_with_key_and_tag_sync(count):
-    key = 'rmq-key'
-    print 'sending message with keys and tag...' + key + ', ' + tag
-    for a in range(count):
-        body = 'hi rmq, now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
-        SetMessageKeys(msg, key)
-        SetMessageTags(msg, tag)
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print 'msg id = ' + result.GetMsgId()
+            output('done, msg_id=' + msg_id)
 
+            self.assertIsInstance(result, SendResult)
+            # self.assertEqual(result.sendStatus, CSendStatus.E_SEND_OK)
+            self.assertIsInstance(msg_id, str, 'message id should be a string')
 
-def send_messages_with_key_and_tag_and_map_sync(count):
-    key = 'rmq-key'
-    print 'sending message with keys and tag...' + \
-        key + ', ' + tag + ' and properties id, name'
-    for a in range(count):
-        body = 'hi rmq, now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
-        SetMessageKeys(msg, key)
+    def calc_which_queue_to_send(self, size, msg, arg):
+        # it is index start with 0....
+        return 0
 
-        SetMessageProperty(msg, 'name', 'test')
-        SetMessageProperty(msg, 'id', str(time.time()))
+    def test_setUp(self):
+        self.assertEqual(self.set_ns_result, 0)
+        self.assertEqual(self.start_result, 0)
 
-        SetMessageTags(msg, tag)
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print 'msg id = ' + result.GetMsgId()
+    def test_send_message(self):
+        def set_map(msg):
+            SetMessageProperty(msg, 'name', 'test')
+            SetMessageProperty(msg, 'id', timestr())
 
+        def set_tag(msg):
+            SetMessageTags(msg, tag)
 
-def send_messages_oneway(count):
-    for a in range(count):
-        print 'start sending...'
-        body = 'hi rmq, this is oneway message. now is ' + \
-            time.strftime('%Y.%m.%d', time.localtime(time.time()))
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
+        def set_key(msg):
+            SetMessageKeys(msg, key)
 
-        SetMessageKeys(msg, key)
-        SetMessageProperty(msg, 'name', 'test')
-        SetMessageProperty(msg, 'id', str(time.time()))
+        setters = {'map': set_map, 'tag': set_tag, 'key': set_key}
+        tests = [
+            ['map'],
+            ['tag'],
+            ['key'],
+            ['map', 'tag'],
+            ['map', 'key'],
+            ['tag', 'key'],
+            ['map', 'tag', 'key'],
+        ]
 
-        SendMessageOneway(producer, msg)
-        DestroyMessage(msg)
-        print 'send oneway is over'
+        test_methods = [
+            self.send_message_sync,
+            self.send_message_delay,
+            self.send_message_oneway,
+            self.send_message_orderly,
+        ]
 
+        # -------------------------------------
 
-def send_delay_messages(producer, topic, count):
-    key = 'rmq-key'
-    print 'start sending message'
-    tag = 'test'
-    for n in range(count):
-        body = 'hi rmq, now is' + str(time.time())
-        msg = CreateMessage(topic)
-        SetMessageBody(msg, body)
-        SetMessageKeys(msg, key)
-        SetMessageProperty(msg, 'name', 'hello world')
-        SetMessageProperty(msg, 'id', str(time.time()))
-        SetMessageTags(msg, tag)
-        # messageDelayLevel=1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h
+        for method in test_methods:
+            method()
+            for test in tests:
+                info = 'with ' + ' and '.join(test)
 
-        SetDelayTimeLevel(msg, 5)
+                def set_message(msg):
+                    for setter_name in test:
+                        setters[setter_name](msg)
 
-        print str(msg)
-        result = SendMessageSync(producer, msg)
-        DestroyMessage(msg)
-        print 'msg id =' + result.GetMsgId()
-
-def send_message_orderly(count):
-    key = 'rmq-key'
-    print 'start sending order-ly message'
-    tag = 'test'
-    for n in range(count):
-        body = 'hi rmq orderly-message, now is' + str(n)
-        msg = CreateMessage(topic_orderly)
-        SetMessageBody(msg, body)
-        SetMessageKeys(msg, key)
-        SetMessageTags(msg, tag)
-
-        result = SendMessageOrderly(producer, msg, 1, None, calc_which_queue_to_send)
-        DestroyMessage(msg)
-        print 'msg id =' + result.GetMsgId()
-
-def calc_which_queue_to_send(size, msg, arg): ## it is index start with 0....
-    return 0
-    
-if __name__ == '__main__':
-    send_message_orderly(10)
+                method(info, set_message)

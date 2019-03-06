@@ -16,7 +16,16 @@
 # */
 
 import sys
+import unittest
+
+sys.stdout.write('\nPython Version: ' + sys.version + '\n\n')
+sys.stdout.flush()
+
 sys.path.append('/usr/local/lib')
-print("__________Python Version:___________")
-print(sys.version)
-print("______Add Path /usr/local/lib_______")
+
+# use number to control testing orderr
+from TestSendMessages import Test1SendMessages
+from TestConsumeMessages import Test2ConsumeMessages
+
+if __name__ == '__main__':
+    unittest.main()
