@@ -17,7 +17,6 @@ def _send_test_msg(producer):
     assert ret.status == SendStatus.OK
 
 
-@pytest.mark.skip(reason='pull hangs forever on Travis CI')
 def test_pull_consumer(producer, pull_consumer):
     try:
         msg = next(pull_consumer.pull('test', max_num=1))
