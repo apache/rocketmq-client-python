@@ -30,7 +30,7 @@ matrix:
         - sudo rm -rf build *.egg-info
         - pip install -Ur dev-requirements.txt
         - pip install -e .
-        - pytest --cov=rocketmq -v tests/test_consumer.py::test_pull_consumer
+        - pytest --cov=rocketmq -v tests
         - pip install codecov && codecov
         # Try to install binary wheel
         - pip install --force-reinstall dist/*.whl
