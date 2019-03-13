@@ -18,12 +18,9 @@ def _send_test_msg(producer):
 
 
 def test_pull_consumer(producer, pull_consumer):
-    try:
-        msg = next(pull_consumer.pull('test', max_num=1))
-    except StopIteration:
-        _send_test_msg(producer)
-        msg = next(pull_consumer.pull('test', max_num=1))
-        time.sleep(5)
+    _send_test_msg(producer)
+    time.sleep(5)
+    msg = next(pull_consumer.pull('test'))
     assert msg.body.decode('utf-8') == 'XXXX'
 
 
