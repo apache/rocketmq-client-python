@@ -9,7 +9,10 @@ from .ffi import (
     dll, _CSendResult, MSG_CALLBACK_FUNC, _CMessageQueue, _CPullStatus,
     _CConsumeStatus, MessageModel,
 )
-from .exceptions import ffi_check, PushConsumerStartFailed, ProducerSendAsyncFailed
+from .exceptions import (
+    ffi_check, PushConsumerStartFailed, ProducerSendAsyncFailed,
+    NullPointerException,
+)
 from .consts import MessageProperty
 
 
@@ -161,6 +164,8 @@ def hashing_queue_selector(mq_size, msg, arg):
 class Producer(object):
     def __init__(self, group_id, timeout=None, compress_level=None, max_message_size=None):
         self._handle = dll.CreateProducer(_to_bytes(group_id))
+        if self._handle is None:
+            raise NullPointerException('CreateProducer returned null pointer')
         if timeout is not None:
             self.set_timeout(timeout)
         if compress_level is not None:
@@ -289,6 +294,8 @@ class Producer(object):
 class PushConsumer(object):
     def __init__(self, group_id, orderly=False, message_model=MessageModel.CLUSTERING):
         self._handle = dll.CreatePushConsumer(_to_bytes(group_id))
+        if self._handle is None:
+            raise NullPointerException('CreatePushConsumer returned null pointer')
         self._orderly = orderly
         self.set_message_model(message_model)
         self._callback_refs = []
@@ -375,6 +382,8 @@ class PushConsumer(object):
 class PullConsumer(object):
     def __init__(self, group_id):
         self._handle = dll.CreatePullConsumer(_to_bytes(group_id))
+        if self._handle is None:
+            raise NullPointerException('CreatePullConsumer returned null pointer')
 
     def __del__(self):
         if self._handle is not None:
