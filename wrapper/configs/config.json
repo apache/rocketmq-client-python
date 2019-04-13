@@ -1,0 +1,25 @@
+{
+  "name_server": "127.0.0.1:9876",
+  "producer":
+  {
+    "group_id": "test-producer-group",
+    "topic": "test-topic-normal",
+    "tag": "animal",
+    "send_timeout": 3000,
+    "suspend_time": 100,
+    "max_retry_times": 3
+  },
+  "consumer":
+  {
+    "group_id": "test-producer-group",
+    "thread_count": 2,
+    "max_batch_size": 1,
+    "topic_tag_list":
+    [
+      {
+        "topic": "test-topic-normal",
+        "tags": "*"
+      }
+    ]
+  }
+}
