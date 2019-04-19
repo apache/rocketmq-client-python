@@ -70,23 +70,18 @@
    strings librocketmqclientpython.so |grep PYTHON_CLIENT_VERSION
    ```
 #### macOS Mojave 10.14.2
-* Install compile tools:
+* Compile tools:
     ```
-    - brew install make
-    - brew install cmake
-    - brew install gcc-c++
+    - make: 3.8
+    - cmake 3.12
+    - Apple LLVM(clang) 10
     ```
 * Install dependency:
  
     1. python-devel
-       ```
-       brew install python-devel
-       ```
     
     2. zlib-devel
-       ```
-       brew install zlib-devel
-       ```
+    
     3. boost-python
        ```
        sh install_boostpython.sh
