@@ -7,7 +7,7 @@ from collections import namedtuple
 
 from .ffi import (
     dll, _CSendResult, MSG_CALLBACK_FUNC, _CMessageQueue, _CPullStatus,
-    _CConsumeStatus, MessageModel,
+    _CConsumeStatus, MessageModel, QUEUE_SELECTOR_CALLBACK,
 )
 from .exceptions import (
     ffi_check, PushConsumerStartFailed, ProducerSendAsyncFailed,
@@ -229,11 +229,26 @@ class Producer(object):
     def send_oneway(self, msg):
         ffi_check(dll.SendMessageOneway(self._handle, msg))
 
+    def send_oneway_orderly(self, msg, arg, queue_selector=hashing_queue_selector):
+        def _select_queue(mq_size, cmsg, user_arg):
+            msg = RecvMessage(cmsg)
+            return queue_selector(mq_size, msg, user_arg)
+
+        queue_select_callback = QUEUE_SELECTOR_CALLBACK(_select_queue)
+        self._callback_refs.append(queue_select_callback)
+        try:
+            ffi_check(dll.SendMessageOnewayOrderly(
+                self._handle,
+                msg,
+                queue_select_callback,
+                ctypes.cast(ctypes.pointer(ctypes.c_int(arg)), c_void_p),
+            ))
+        finally:
+            self._callback_refs.remove(queue_select_callback)
+
     def send_orderly(self, msg, arg,
                      retry_times=3,
                      queue_selector=hashing_queue_selector):
-        from .ffi import QUEUE_SELECTOR_CALLBACK
-
         def _select_queue(mq_size, cmsg, user_arg):
             msg = RecvMessage(cmsg)
             return queue_selector(mq_size, msg, user_arg)

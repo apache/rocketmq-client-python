@@ -203,6 +203,8 @@ dll.SendMessageOneway.argtypes = [c_void_p, c_void_p]
 dll.SendMessageOneway.restype = _CStatus
 dll.SendMessageOrderly.argtypes = [c_void_p, c_void_p, QUEUE_SELECTOR_CALLBACK, c_void_p, c_int, POINTER(_CSendResult)]
 dll.SendMessageOrderly.restype = _CStatus
+dll.SendMessageOnewayOrderly.argtypes = [c_void_p, c_void_p, QUEUE_SELECTOR_CALLBACK, c_void_p]
+dll.SendMessageOnewayOrderly.restype = _CStatus
 
 # Pull Consumer
 dll.CreatePullConsumer.argtypes = [c_char_p]

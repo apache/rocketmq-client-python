@@ -3,6 +3,7 @@ import time
 import threading
 
 import pytest
+
 from rocketmq.client import Message, SendStatus
 from rocketmq.exceptions import PushConsumerStartFailed
 from rocketmq.consts import MessageProperty
