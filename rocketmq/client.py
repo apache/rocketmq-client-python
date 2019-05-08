@@ -200,9 +200,9 @@ class Producer(object):
             try:
                 if success_callback:
                     sendres = SendResult(
-                        SendStatus(cres.sendStatus),
-                        cres.msgId.decode('utf-8'),
-                        cres.offset
+                        SendStatus(csendres.sendStatus),
+                        csendres.msgId.decode('utf-8'),
+                        csendres.offset
                     )
                     success_callback(sendres)
             finally:

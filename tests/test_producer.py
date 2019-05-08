@@ -12,11 +12,14 @@ def test_producer_send_sync(producer):
 
 
 def test_producer_send_async(producer):
+    def on_success(msg):
+        print(msg)
+
     msg = Message('test')
     msg.set_keys('XXX')
     msg.set_tags('XXX')
     msg.set_body('XXXX')
-    producer.send_async(msg, None, None)
+    producer.send_async(msg, on_success, None)
 
 
 def test_producer_send_oneway(producer):
