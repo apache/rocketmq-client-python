@@ -44,8 +44,9 @@
        cd rocketmqlib
        wget https://opensource-rocketmq-client.oss-cn-hangzhou.aliyuncs.com/cpp-client/linux/1.2.2/RHEL7.X/rocketmq-client-cpp.tar.gz
        tar -xzf rocketmq-client-cpp.tar.gz
-       cd rocketmq-client-cpp
+       cd rocketmq-client-cpp/lib
        sudo cp librocketmq.so librocketmq.a /usr/local/lib/
+       cd ..
        sudo cp -r include/* /usr/local/include/rocketmq
        ```
    
