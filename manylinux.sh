@@ -14,7 +14,7 @@ mkdir -p /tmp/rocketmq-client-cpp/tmp_down_dir
 curl -sqL -o /tmp/rocketmq-client-cpp/tmp_down_dir/libevent-release-2.1.8-stable.zip https://github.com/libevent/libevent/archive/release-2.1.8-stable.zip
 curl -sqL -o /tmp/rocketmq-client-cpp/tmp_down_dir/jsoncpp-0.10.7.zip https://github.com/open-source-parsers/jsoncpp/archive/0.10.7.zip
 curl -sqL -o /tmp/rocketmq-client-cpp/tmp_down_dir/boost_1_58_0.tar.gz http://sourceforge.net/projects/boost/files/boost/1.58.0/boost_1_58_0.tar.gz
-cd /tmp/rocketmq-client-cpp && git checkout 8c462e0296c7e60943ac8a127c956af12ff3190c && bash build.sh && cd -
+cd /tmp/rocketmq-client-cpp && git checkout dd328fcd017e9d3e1c1b4cdc7cdef5bdee5b9405 && bash build.sh && cd -
 cp /tmp/rocketmq-client-cpp/bin/librocketmq.so /io/rocketmq/librocketmq.so
 
 # Build wheels
