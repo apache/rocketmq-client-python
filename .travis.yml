@@ -43,7 +43,7 @@ matrix:
         - brew upgrade python
         - git clone --depth=1 --branch=release https://github.com/messense/rocketmq-client-cpp.git /tmp/rocketmq-client-cpp
         - while sleep 300; do echo "=====[ $SECONDS seconds, still building... ]====="; done &
-        - cd /tmp/rocketmq-client-cpp && git checkout 2ed69b341cc750aaadfc24a8a872db5f78db2ab6 && bash build.sh >> build.log 2>&1 && cd -
+        - cd /tmp/rocketmq-client-cpp && git checkout 277ba805619c5f34f29a22ac0ad9fa32edccc07b && bash build.sh >> build.log 2>&1 && cd -
         - cp /tmp/rocketmq-client-cpp/bin/librocketmq.dylib rocketmq/
         - python3 setup.py sdist bdist_wheel
         - ls dist/
