@@ -457,7 +457,10 @@ class PullConsumer(object):
                 if pull_res.pullStatus == _CPullStatus.FOUND:
                     for i in range(int(pull_res.size)):
                         yield RecvMessage(pull_res.msgFoundList[i])
-                elif pull_res.pullStatus == _CPullStatus.NO_MATCHED_MSG:
+                elif pull_res.pullStatus in [_CPullStatus.NO_MATCHED_MSG, _CPullStatus.NO_NEW_MSG, _CPullStatus.OFFSET_ILLEGAL]:
+                    dll.ReleasePullResult(pull_res)  # NOTE: No need to check ffi return code here
+                    break
+                else:
                     dll.ReleasePullResult(pull_res)  # NOTE: No need to check ffi return code here
                     break
                 dll.ReleasePullResult(pull_res)  # NOTE: No need to check ffi return code here
