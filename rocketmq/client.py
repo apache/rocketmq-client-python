@@ -483,5 +483,5 @@ class PullConsumer(object):
                     pass
                 else:
                     pass
-            dll.ReleasePullResult(pull_res)  # NOTE: No need to check ffi return code here
+                dll.ReleasePullResult(pull_res)  # NOTE: No need to check ffi return code here
         ffi_check(dll.ReleaseSubscriptionMessageQueue(message_queue))
