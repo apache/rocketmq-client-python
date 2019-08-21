@@ -22,7 +22,8 @@ def ffi_check(status_code):
     if msg:
         msg = msg.decode('utf-8')
         msg = re.sub('<.*?(rocketmq-client-cpp/)(.*)>', '\\1\\2', msg)
-        msg = msg.replace('msg: ', '')
+        if msg.startswith('msg: '):
+            msg = msg[5:]
     raise exc_cls(msg)
 
 
