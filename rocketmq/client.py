@@ -433,7 +433,7 @@ class PullConsumer(object):
             _to_bytes(access_secret),
             _to_bytes(channel)
         ))
-    
+
     def _get_mq_key(self, mq):
         key = '%s@%s' % (mq.topic, mq.queueId)
         return key

@@ -284,3 +284,7 @@ dll.SetPushConsumerLogLevel.argtypes = [c_void_p, _CLogLevel]
 dll.SetPushConsumerLogLevel.restype = _CStatus
 dll.SetPushConsumerMessageModel.argtypes = [c_void_p, MessageModel]
 dll.SetPushConsumerMessageModel.restype = _CStatus
+
+# Misc
+dll.GetLatestErrorMessage.argtypes = []
+dll.GetLatestErrorMessage.restype = c_char_p

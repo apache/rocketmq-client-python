@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .ffi import _CStatus
+from .ffi import dll, _CStatus
 
 
 _EXCEPTION_MAP = {}
@@ -16,7 +16,10 @@ def ffi_check(status_code):
     if status_code == _CStatus.OK:
         return
     exc_cls = _EXCEPTION_MAP.get(status_code, RocketMQException)
-    raise exc_cls()
+    msg = dll.GetLatestErrorMessage()
+    if msg:
+        msg = msg.decode('utf-8')
+    raise exc_cls(msg)
 
 
 class RocketMQException(Exception):
