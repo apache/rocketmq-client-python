@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import re
+
 from .ffi import dll, _CStatus
 
 
@@ -19,6 +21,8 @@ def ffi_check(status_code):
     msg = dll.GetLatestErrorMessage()
     if msg:
         msg = msg.decode('utf-8')
+        msg = re.sub('<.*?(rocketmq-client-cpp/)(.*)>', '\\1\\2', msg)
+        msg = msg.replace('msg: ', '')
     raise exc_cls(msg)
 
 
