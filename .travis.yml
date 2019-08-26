@@ -41,7 +41,7 @@ matrix:
       compiler: clang
       script:
         - brew upgrade python
-        - git clone --depth=1 --branch=rocketmq-python-0.4.0 https://github.com/messense/rocketmq-client-cpp.git /tmp/rocketmq-client-cpp
+        - git clone --depth=1 --branch=rocketmq-python-0.4.1 https://github.com/messense/rocketmq-client-cpp.git /tmp/rocketmq-client-cpp
         - while sleep 300; do echo "=====[ $SECONDS seconds, still building... ]====="; done &
         - cd /tmp/rocketmq-client-cpp && bash build.sh >> build.log 2>&1 && cd -
         - cp /tmp/rocketmq-client-cpp/bin/librocketmq.dylib rocketmq/
