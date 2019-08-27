@@ -158,6 +158,12 @@ dll.GetMessageCommitLogOffset.argtypes = [c_void_p]
 dll.GetMessageCommitLogOffset.restype = c_longlong
 dll.GetMessagePreparedTransactionOffset.argtypes = [c_void_p]
 dll.GetMessagePreparedTransactionOffset.restype = c_longlong
+dll.CreateBatchMessage.argtypes = []
+dll.CreateBatchMessage.restype = c_void_p
+dll.AddMessage.argtypes = [c_void_p, c_void_p]
+dll.AddMessage.restype = _CStatus
+dll.DestroyBatchMessage.argtypes = [c_void_p]
+dll.DestroyBatchMessage.restype = _CStatus
 
 # Producer
 
@@ -205,6 +211,8 @@ dll.SendMessageOrderly.argtypes = [c_void_p, c_void_p, QUEUE_SELECTOR_CALLBACK, 
 dll.SendMessageOrderly.restype = _CStatus
 dll.SendMessageOnewayOrderly.argtypes = [c_void_p, c_void_p, QUEUE_SELECTOR_CALLBACK, c_void_p]
 dll.SendMessageOnewayOrderly.restype = _CStatus
+dll.SendBatchMessage.argtypes = [c_void_p, c_void_p, POINTER(_CSendResult)]
+dll.SendBatchMessage.restype = _CStatus
 
 # Pull Consumer
 dll.CreatePullConsumer.argtypes = [c_char_p]

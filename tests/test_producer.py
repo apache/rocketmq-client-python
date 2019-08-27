@@ -45,3 +45,21 @@ def test_producer_send_orderly(producer):
     msg.set_body('XXXX')
     ret = producer.send_orderly(msg, 1)
     assert ret.status == SendStatus.OK
+
+
+def test_producer_send_batch(producer):
+    batch_msg = []
+    msg = Message('test1')
+    msg.set_keys('send_batch_1')
+    msg.set_tags('XXX1')
+    msg.set_body('XXXX1')
+    batch_msg.append(msg)
+
+    msg = Message('test2')
+    msg.set_keys('send_batch_2')
+    msg.set_tags('XXX2')
+    msg.set_body('XXXX2')
+    batch_msg.append(msg)
+
+    ret = producer.send_batch(batch_msg)
+    assert ret.status == SendStatus.OK

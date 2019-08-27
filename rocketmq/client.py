@@ -184,6 +184,25 @@ class Producer(object):
     def __exit__(self, type, value, traceback):
         self.shutdown()
 
+    def send_batch(self, msgs):
+        assert len(msgs) > 0, 'Batch message length should be greater than 0'
+        batch_msg = dll.CreateBatchMessage()
+        try:
+            for msg in msgs:
+                assert isinstance(msg, Message), 'Batch message item should be a instance of `Message`'
+                ffi_check(dll.AddMessage(batch_msg, msg))
+
+            cres = _CSendResult()
+            ffi_check(dll.SendBatchMessage(self._handle, batch_msg, ctypes.pointer(cres)))
+            return SendResult(
+                SendStatus(cres.sendStatus),
+                cres.msgId.decode('utf-8'),
+                cres.offset
+            )
+        finally:
+            if batch_msg is not None:
+                ffi_check(dll.DestroyBatchMessage(batch_msg))
+
     def send_sync(self, msg):
         cres = _CSendResult()
         ffi_check(dll.SendMessageSync(self._handle, msg, ctypes.pointer(cres)))
