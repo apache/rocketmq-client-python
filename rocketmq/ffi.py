@@ -10,12 +10,18 @@ from enum import IntEnum
 _DYLIB_SUFFIX = '.so'
 if sys.platform.lower() == 'darwin':
     _DYLIB_SUFFIX = '.dylib'
+elif sys.platform.lower() == 'win32':
+    raise NotImplementedError('rocketmq-python does not support Windows')
+
 _CURR_DIR = os.path.abspath(os.path.dirname(__file__))
 _PKG_DYLIB_PATH = os.path.join(_CURR_DIR, 'librocketmq' + _DYLIB_SUFFIX)
 _DYLIB_PATH = find_library('rocketmq')
 if os.path.exists(_PKG_DYLIB_PATH):
     # Prefer packaged librocketmq dylib
     _DYLIB_PATH = _PKG_DYLIB_PATH
+
+if not _DYLIB_PATH:
+    raise ImportError('rocketmq dynamic library not found')
 
 dll = ctypes.cdll.LoadLibrary(_DYLIB_PATH)
 

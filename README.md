@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/messense/rocketmq-python/branch/master/graph/badge.svg)](https://codecov.io/gh/messense/rocketmq-python)
 [![PyPI](https://img.shields.io/pypi/v/rocketmq.svg)](https://pypi.org/project/rocketmq)
 
-RocketMQ Python client
+RocketMQ Python client, based on [rocketmq-client-cpp](https://github.com/apache/rocketmq-client-cpp), supports Linux and macOS
 
 ## Installation
 
