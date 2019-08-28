@@ -21,8 +21,10 @@ __all__ = ['SendStatus', 'Message', 'RecvMessage', 'Producer', 'PushConsumer', '
 PY2 = sys.version_info[0] == 2
 if PY2:
     text_type = unicode
+    binary_type = str
 else:
     text_type = str
+    binary_type = bytes
 
 SendResult = namedtuple('SendResult', ['status', 'msg_id', 'offset'])
 
@@ -69,7 +71,7 @@ class Message(object):
 
 
 def maybe_decode(val):
-    if val:
+    if isinstance(val, binary_type):
         return val.decode('utf-8')
 
 
