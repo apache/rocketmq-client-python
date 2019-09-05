@@ -43,3 +43,23 @@ def test_push_consumer(producer, push_consumer):
     push_consumer.start()
     while not stop_event.is_set():
         time.sleep(10)
+
+
+def test_push_consumer_reconsume_later(producer, push_consumer):
+    stop_event = threading.Event()
+    _send_test_msg(producer)
+    raised_exc = threading.Event()
+
+    def on_message(msg):
+        if not raised_exc.is_set():
+            raised_exc.set()
+            raise Exception('Should reconsume later')
+
+        stop_event.set()
+        assert msg.body.decode('utf-8') == 'XXXX'
+        assert msg[MessageProperty.KEYS]
+
+    push_consumer.subscribe('test', on_message)
+    push_consumer.start()
+    while not stop_event.is_set():
+        time.sleep(10)
