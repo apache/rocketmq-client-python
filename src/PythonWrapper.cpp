@@ -165,6 +165,19 @@ PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes,
     return ret;
 }
 
+PySendResult PySendMessageOrderlyByShardingKey(void *producer, void *msg, const char *shardingKey, void *args) {
+    PySendResult ret;
+    CSendResult result;
+    PyUserData userData = {queueSelector,args};
+    SendMessageOrderlyByShardingKey((CProducer *) producer, (CMessage *) msg, shardingKey, &result);
+    ret.sendStatus = result.sendStatus;
+    ret.offset = result.offset;
+    strncpy(ret.msgId, result.msgId, MAX_MESSAGE_ID_LENGTH - 1);
+    ret.msgId[MAX_MESSAGE_ID_LENGTH - 1] = 0;
+    return ret;
+}
+
+
 int PyOrderlyCallbackInner(int size, CMessage *msg, void *args) {
     PyUserData *userData = (PyUserData *)args;
     int index = boost::python::call<int>(userData->pyObject, size, (void *) msg, userData->pData);
@@ -313,6 +326,7 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("SendMessageSync", PySendMessageSync);
     def("SendMessageOneway", PySendMessageOneway);
     def("SendMessageOrderly", PySendMessageOrderly);
+    def("SendMessageOrderlyByShardingKey", PySendMessageOrderlyByShardingKey);
 
     //For Consumer
     def("CreatePushConsumer", PyCreatePushConsumer, return_value_policy<return_opaque_pointer>());
