@@ -62,7 +62,7 @@ def testSendMssageOrderly(producer, topic, key, body):
     SetMessageBody(msg, body)
     SetMessageKeys(msg, key)
     SetMessageTags(msg, "ThisMessageTag.")
-    result = SendMessageOrderlyByShardingKey(producer, msg, "orderId", None)
+    result = SendMessageOrderlyByShardingKey(producer, msg, "orderId")
     print(result)
     print("Msgid:")
     print(result.GetMsgId())
@@ -86,9 +86,9 @@ topic = "T_TestTopic"
 key = "TestKeys"
 body = "ThisIsTestBody"
 i = 0
-while i < 10000:
+while i < 100:
     i += 1
-    testSendMssage(producer, topic, key, body)
+    testSendMssageOrderly(producer, topic, key, body)
 
     print("Now Send Message:", i)
 

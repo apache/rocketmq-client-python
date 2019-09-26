@@ -165,10 +165,9 @@ PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes,
     return ret;
 }
 
-PySendResult PySendMessageOrderlyByShardingKey(void *producer, void *msg, const char *shardingKey, void *args) {
+PySendResult PySendMessageOrderlyByShardingKey(void *producer, void *msg, const char *shardingKey) {
     PySendResult ret;
     CSendResult result;
-    PyUserData userData = {queueSelector,args};
     SendMessageOrderlyByShardingKey((CProducer *) producer, (CMessage *) msg, shardingKey, &result);
     ret.sendStatus = result.sendStatus;
     ret.offset = result.offset;

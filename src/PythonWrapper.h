@@ -84,7 +84,7 @@ PySendResult PySendMessageSync(void *producer, void *msg);
 int PySendMessageOneway(void *producer, void *msg);
 // PySendResult PySendMessageOrderly(void *producer, void *msg , int autoRetryTimes, PyObject *args, PyObject *callback);
 PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes, void *args, PyObject *queueSelector);
-PySendResult PySendMessageOrderlyByShardingKey(void *producer, void *msg, const char *shardingKey, void *args);
+PySendResult PySendMessageOrderlyByShardingKey(void *producer, void *msg, const char *shardingKey);
 
 int PyOrderlyCallbackInner(int size, CMessage *msg, void *args);
 
