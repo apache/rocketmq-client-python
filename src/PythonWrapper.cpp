@@ -32,7 +32,6 @@ const char *VERSION =
         "PYTHON_CLIENT_VERSION: " PYTHON_CLIENT_VERSION ", BUILD DATE: " PYCLI_BUILD_DATE " ";
 
 map<CPushConsumer *, pair<PyObject *, object>> g_CallBackMap;
-map<CPushConsumer *, pair<PyObject *, object>> g_CallBackMap;
 map<void *, PyObject *> g_SendSuccessCallbackMap;
 map<void *, PyObject *> g_SendExceptionCallbackMap;
 
@@ -159,14 +158,14 @@ int PySendMessageOneway(void *producer, void *msg) {
 
 void PySendSuccessCallback(CSendResult result){
     map<void *, PyObject *>::iterator iter = g_SendSuccessCallbackMap.begin();
-    while(iter != pCallbackMap.end()) {
+    while(iter != g_SendSuccessCallbackMap.end()) {
         boost::python::call<void>(iter->second, iter->first);
     }
 }
 
 void PySendExceptionCallback(CMQException e){
     map<void *, PyObject *>::iterator iter = g_SendExceptionCallbackMap.begin();
-    while(iter != pCallbackMap.end()) {
+    while(iter != g_SendExceptionCallbackMap.end()) {
         boost::python::call<void>(iter->second, iter->first);
     }
 }
