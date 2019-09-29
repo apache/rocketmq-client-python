@@ -21,6 +21,7 @@
 #include "CProducer.h"
 #include "CPushConsumer.h"
 #include "PythonWrapper.h"
+#include "CMQException.h"
 #include <boost/python.hpp>
 #include <map>
 
@@ -31,6 +32,9 @@ const char *VERSION =
         "PYTHON_CLIENT_VERSION: " PYTHON_CLIENT_VERSION ", BUILD DATE: " PYCLI_BUILD_DATE " ";
 
 map<CPushConsumer *, pair<PyObject *, object>> g_CallBackMap;
+map<CPushConsumer *, pair<PyObject *, object>> g_CallBackMap;
+map<void *, PyObject *> g_SendSuccessCallbackMap;
+map<void *, PyObject *> g_SendExceptionCallbackMap;
 
 class PyThreadStateLock {
 public:
@@ -152,6 +156,29 @@ PySendResult PySendMessageSync(void *producer, void *msg) {
 int PySendMessageOneway(void *producer, void *msg) {
     return SendMessageOneway((CProducer *) producer, (CMessage *) msg);
 }
+
+void PySendSuccessCallback(CSendResult result){
+    map<void *, PyObject *>::iterator iter = g_SendSuccessCallbackMap.begin();
+    while(iter != pCallbackMap.end()) {
+        boost::python::call<void>(iter->second, iter->first);
+    }
+}
+
+void PySendExceptionCallback(CMQException e){
+    map<void *, PyObject *>::iterator iter = g_SendExceptionCallbackMap.begin();
+    while(iter != pCallbackMap.end()) {
+        boost::python::call<void>(iter->second, iter->first);
+    }
+}
+
+int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback , PyObject *sendExceptionCallback){
+    g_SendSuccessCallbackMap[msg] = sendSuccessCallback;
+    g_SendExceptionCallbackMap[msg] = sendExceptionCallback;
+
+    return SendMessageAsync((CProducer *) producer,  (CMessage *) msg, &PySendSuccessCallback, &PySendExceptionCallback);
+}
+
+
 
 PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes, void *args, PyObject *queueSelector) {
     PySendResult ret;
@@ -323,6 +350,11 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("SetProducerInstanceName", PySetProducerInstanceName);
     def("SetProducerSessionCredentials", PySetProducerSessionCredentials);
     def("SendMessageSync", PySendMessageSync);
+
+    def("SendSuccessCallback", PySendSuccessCallback);
+    def("SendExceptionCallback", PySendExceptionCallback);
+    def("SendMessageAsync", PySendMessageAsync);
+
     def("SendMessageOneway", PySendMessageOneway);
     def("SendMessageOrderly", PySendMessageOrderly);
     def("SendMessageOrderlyByShardingKey", PySendMessageOrderlyByShardingKey);

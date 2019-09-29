@@ -22,6 +22,7 @@
 #include "CProducer.h"
 #include "CPushConsumer.h"
 #include "CPullConsumer.h"
+#include "CMQException.h"
 #include <boost/python.hpp>
 
 using namespace boost::python;
@@ -82,7 +83,12 @@ int PySetProducerInstanceName(void *producer, const char *instanceName);
 int PySetProducerSessionCredentials(void *producer, const char *accessKey, const char *secretKey, const char *channel);
 PySendResult PySendMessageSync(void *producer, void *msg);
 int PySendMessageOneway(void *producer, void *msg);
-// PySendResult PySendMessageOrderly(void *producer, void *msg , int autoRetryTimes, PyObject *args, PyObject *callback);
+
+void PySendSuccessCallback(CSendResult result);
+void PySendExceptionCallback(CMQException ex);
+int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback , PyObject *sendExceptionCallback);
+
+
 PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes, void *args, PyObject *queueSelector);
 PySendResult PySendMessageOrderlyByShardingKey(void *producer, void *msg, const char *shardingKey);
 

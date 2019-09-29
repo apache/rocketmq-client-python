@@ -214,6 +214,21 @@ def send_message_orderly(count):
         DestroyMessage(msg)
         print 'msg id =' + result.GetMsgId()
 
+def send_message_orderly_with_shardingkey(count):
+    key = 'rmq-key'
+    print 'start sending sharding key order-ly message'
+    tag = 'test'
+    for n in range(count):
+        body = 'hi rmq sharding orderly-message, now is' + str(n)
+        msg = CreateMessage(topic_orderly)
+        SetMessageBody(msg, body)
+        SetMessageKeys(msg, key)
+        SetMessageTags(msg, tag)
+
+        result = SendMessageOrderlyByShardingKey(producer, msg, 'orderId')
+        DestroyMessage(msg)
+        print 'msg id =' + result.GetMsgId()
+
 def calc_which_queue_to_send(size, msg, arg): ## it is index start with 0....
     return 0
     
