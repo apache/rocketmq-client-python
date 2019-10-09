@@ -141,6 +141,14 @@ int PySetProducerInstanceName(void *producer, const char *instanceName) {
 int PySetProducerSessionCredentials(void *producer, const char *accessKey, const char *secretKey, const char *channel) {
     return SetProducerSessionCredentials((CProducer *)producer, accessKey, secretKey, channel);
 }
+int PySetProducerCompressLevel(void *producer, int level) {
+    return SetProducerCompressLevel((CProducer *)producer, level);
+}
+int PySetProducerMaxMessageSize(void *producer, int size) {
+    return SetProducerMaxMessageSize((CProducer *)producer, size);
+}
+
+
 PySendResult PySendMessageSync(void *producer, void *msg) {
     PySendResult ret;
     CSendResult result;
@@ -348,8 +356,10 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("SetProducerNameServerDomain", PySetProducerNameServerDomain);
     def("SetProducerInstanceName", PySetProducerInstanceName);
     def("SetProducerSessionCredentials", PySetProducerSessionCredentials);
-    def("SendMessageSync", PySendMessageSync);
+    def("SetProducerCompressLevel", PySetProducerCompressLevel);
+    def("SetProducerMaxMessageSize", PySetProducerMaxMessageSize);
 
+    def("SendMessageSync", PySendMessageSync);
     def("SendSuccessCallback", PySendSuccessCallback);
     def("SendExceptionCallback", PySendExceptionCallback);
     def("SendMessageAsync", PySendMessageAsync);

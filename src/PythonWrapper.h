@@ -81,6 +81,9 @@ int PySetProducerNameServerAddress(void *producer, const char *namesrv);
 int PySetProducerNameServerDomain(void *producer, const char *domain);
 int PySetProducerInstanceName(void *producer, const char *instanceName);
 int PySetProducerSessionCredentials(void *producer, const char *accessKey, const char *secretKey, const char *channel);
+int PySetProducerCompressLevel(void *producer, int level);
+int PySetProducerMaxMessageSize(void *producer, int size);
+
 PySendResult PySendMessageSync(void *producer, void *msg);
 int PySendMessageOneway(void *producer, void *msg);
 
