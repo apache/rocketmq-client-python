@@ -41,10 +41,19 @@ typedef struct _PyMessageExt_ {
     CMessageExt *pMessageExt;
 } PyMessageExt;
 
+typedef struct _PyMessage_ {
+    CMessage *pMessage;
+} PyMessage;
+
 typedef struct _PyUserData_ {
     PyObject *pyObject;
     void *pData;
 } PyUserData;
+
+typedef struct _PyCallback_ {
+    PyObject *successCallback;
+    PyObject *execptionCallback;
+} PyCallback;
 
 #define PYTHON_CLIENT_VERSION "1.2.0"
 #define PYCLI_BUILD_DATE "04-12-2018"
@@ -89,7 +98,7 @@ int PySendMessageOneway(void *producer, void *msg);
 
 void PySendSuccessCallback(CSendResult result);
 void PySendExceptionCallback(CMQException ex);
-int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback , PyObject *sendExceptionCallback);
+int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback, PyObject *sendExceptionCallback, void* userData);
 
 
 PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes, void *args, PyObject *queueSelector);
