@@ -41,10 +41,6 @@ typedef struct _PyMessageExt_ {
     CMessageExt *pMessageExt;
 } PyMessageExt;
 
-typedef struct _PyMessage_ {
-    CMessage *pMessage;
-} PyMessage;
-
 typedef struct _PyUserData_ {
     PyObject *pyObject;
     void *pData;

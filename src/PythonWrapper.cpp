@@ -165,19 +165,17 @@ int PySendMessageOneway(void *producer, void *msg) {
 void PySendSuccessCallback(CSendResult result, CMessage* msg, void* pyCallback){
     PySendResult sendResult;
     PyCallback *callback = (PyCallback *)pyCallback;
-    PyMessage message = { .pMessage = msg };
     sendResult.sendStatus = result.sendStatus;
     sendResult.offset = result.offset;
     strncpy(sendResult.msgId, result.msgId, MAX_MESSAGE_ID_LENGTH - 1);
     sendResult.msgId[MAX_MESSAGE_ID_LENGTH - 1] = 0;
-    boost::python::call<void>(callback->successCallback, sendResult, message);
+    boost::python::call<void>(callback->successCallback, sendResult, (void *) msg);
 }
 
 
 void PySendExceptionCallback(CMQException e, CMessage* msg, void* pyCallback){
     PyCallback *callback = (PyCallback *)pyCallback;
-    PyMessage message = { .pMessage = msg };
-    boost::python::call<void>(callback->execptionCallback, message, e);
+    boost::python::call<void>(callback->execptionCallback, (void *) msg, e);
 }
 
 int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback, PyObject *sendExceptionCallback){
@@ -327,7 +325,6 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
             .def_readonly("sendStatus", &PySendResult::sendStatus, "sendStatus")
             .def("GetMsgId", &PySendResult::GetMsgId);
     class_<PyMessageExt>("CMessageExt");
-    class_<PyMessage>("CMessage");
 
     //For Message
     def("CreateMessage", PyCreateMessage, return_value_policy<return_opaque_pointer>());
