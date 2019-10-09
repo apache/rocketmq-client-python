@@ -96,9 +96,9 @@ int PySetProducerMaxMessageSize(void *producer, int size);
 PySendResult PySendMessageSync(void *producer, void *msg);
 int PySendMessageOneway(void *producer, void *msg);
 
-void PySendSuccessCallback(CSendResult result);
-void PySendExceptionCallback(CMQException ex);
-int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback, PyObject *sendExceptionCallback, void* userData);
+void PySendSuccessCallback(CSendResult result, CMessage* msg, void* pyCallback);
+void PySendExceptionCallback(CMQException e, CMessage* msg, void* pyCallback);
+int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback, PyObject *sendExceptionCallback);
 
 
 PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes, void *args, PyObject *queueSelector);

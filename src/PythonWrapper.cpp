@@ -163,20 +163,20 @@ int PySendMessageOneway(void *producer, void *msg) {
 }
 
 void PySendSuccessCallback(CSendResult result, CMessage* msg, void* pyCallback){
-    PySendResult ret;
+    PySendResult sendResult;
     PyCallback *callback = (PyCallback *)pyCallback;
     PyMessage message = { .pMessage = msg };
-    ret.sendStatus = result.sendStatus;
-    ret.offset = result.offset;
-    strncpy(ret.msgId, result.msgId, MAX_MESSAGE_ID_LENGTH - 1);
-    ret.msgId[MAX_MESSAGE_ID_LENGTH - 1] = 0;
+    sendResult.sendStatus = result.sendStatus;
+    sendResult.offset = result.offset;
+    strncpy(sendResult.msgId, result.msgId, MAX_MESSAGE_ID_LENGTH - 1);
+    sendResult.msgId[MAX_MESSAGE_ID_LENGTH - 1] = 0;
     boost::python::call<void>(callback->successCallback, sendResult, message);
 }
 
 
 void PySendExceptionCallback(CMQException e, CMessage* msg, void* pyCallback){
     PyCallback *callback = (PyCallback *)pyCallback;
-    PyMessageExt message = { .pMessage = msg };
+    PyMessage message = { .pMessage = msg };
     boost::python::call<void>(callback->execptionCallback, message, e);
 }
 
