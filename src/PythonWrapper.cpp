@@ -116,6 +116,7 @@ const char *PyGetMessageId(PyMessageExt msgExt) {
 
 //producer
 void *PyCreateProducer(const char *groupId) {
+    PyEval_InitThreads();  // ensure create GIL, for call Python callback from C.
     return (void *) CreateProducer(groupId);
 }
 int PyDestroyProducer(void *producer) {
@@ -125,6 +126,7 @@ int PyStartProducer(void *producer) {
     return StartProducer((CProducer *) producer);
 }
 int PyShutdownProducer(void *producer) {
+    PyThreadStateUnlock PyThreadUnlock;  // Shutdown Producer is a block call, ensure thread don't hold GIL.
     return ShutdownProducer((CProducer *) producer);
 }
 int PySetProducerNameServerAddress(void *producer, const char *namesrv) {
@@ -162,20 +164,22 @@ int PySendMessageOneway(void *producer, void *msg) {
     return SendMessageOneway((CProducer *) producer, (CMessage *) msg);
 }
 
-void PySendSuccessCallback(CSendResult result, CMessage* msg, void* pyCallback){
+void PySendSuccessCallback(CSendResult result, CMessage *msg, void *pyCallback){
+    PyThreadStateLock PyThreadLock;  // ensure hold GIL, before call python callback
     PySendResult sendResult;
-    PyCallback *callback = (PyCallback *)pyCallback;
     sendResult.sendStatus = result.sendStatus;
     sendResult.offset = result.offset;
     strncpy(sendResult.msgId, result.msgId, MAX_MESSAGE_ID_LENGTH - 1);
     sendResult.msgId[MAX_MESSAGE_ID_LENGTH - 1] = 0;
+    PyCallback *callback = (PyCallback *)pyCallback;
     boost::python::call<void>(callback->successCallback, sendResult, (void *) msg);
 }
 
 
-void PySendExceptionCallback(CMQException e, CMessage* msg, void* pyCallback){
+void PySendExceptionCallback(CMQException e, CMessage *msg, void *pyCallback){
+    PyThreadStateLock PyThreadLock;  // ensure hold GIL, before call python callback
     PyCallback *callback = (PyCallback *)pyCallback;
-    boost::python::call<void>(callback->execptionCallback, (void *) msg, e);
+    boost::python::call<void>(callback->exceptionCallback, (void *) msg, e);
 }
 
 int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback, PyObject *sendExceptionCallback){
@@ -197,6 +201,12 @@ PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes,
     return ret;
 }
 
+int PyOrderlyCallbackInner(int size, CMessage *msg, void *args) {
+    PyUserData *userData = (PyUserData *)args;
+    int index = boost::python::call<int>(userData->pyObject, size, (void *) msg, userData->pData);
+    return index;
+}
+
 PySendResult PySendMessageOrderlyByShardingKey(void *producer, void *msg, const char *shardingKey) {
     PySendResult ret;
     CSendResult result;
@@ -206,13 +216,6 @@ PySendResult PySendMessageOrderlyByShardingKey(void *producer, void *msg, const 
     strncpy(ret.msgId, result.msgId, MAX_MESSAGE_ID_LENGTH - 1);
     ret.msgId[MAX_MESSAGE_ID_LENGTH - 1] = 0;
     return ret;
-}
-
-
-int PyOrderlyCallbackInner(int size, CMessage *msg, void *args) {
-    PyUserData *userData = (PyUserData *)args;
-    int index = boost::python::call<int>(userData->pyObject, size, (void *) msg, userData->pData);
-    return index;
 }
 
 //SendResult
@@ -358,8 +361,6 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("SetProducerMaxMessageSize", PySetProducerMaxMessageSize);
 
     def("SendMessageSync", PySendMessageSync);
-    def("SendSuccessCallback", PySendSuccessCallback);
-    def("SendExceptionCallback", PySendExceptionCallback);
     def("SendMessageAsync", PySendMessageAsync);
 
     def("SendMessageOneway", PySendMessageOneway);

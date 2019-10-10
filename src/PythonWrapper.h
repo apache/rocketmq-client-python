@@ -48,7 +48,7 @@ typedef struct _PyUserData_ {
 
 typedef struct _PyCallback_ {
     PyObject *successCallback;
-    PyObject *execptionCallback;
+    PyObject *exceptionCallback;
 } PyCallback;
 
 #define PYTHON_CLIENT_VERSION "1.2.0"
@@ -92,8 +92,8 @@ int PySetProducerMaxMessageSize(void *producer, int size);
 PySendResult PySendMessageSync(void *producer, void *msg);
 int PySendMessageOneway(void *producer, void *msg);
 
-void PySendSuccessCallback(CSendResult result, CMessage* msg, void* pyCallback);
-void PySendExceptionCallback(CMQException e, CMessage* msg, void* pyCallback);
+void PySendSuccessCallback(CSendResult result, CMessage *msg, void *pyCallback);
+void PySendExceptionCallback(CMQException e, CMessage *msg, void *pyCallback);
 int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback, PyObject *sendExceptionCallback);
 
 
