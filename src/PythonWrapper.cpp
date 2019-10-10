@@ -173,6 +173,7 @@ void PySendSuccessCallback(CSendResult result, CMessage *msg, void *pyCallback){
     sendResult.msgId[MAX_MESSAGE_ID_LENGTH - 1] = 0;
     PyCallback *callback = (PyCallback *)pyCallback;
     boost::python::call<void>(callback->successCallback, sendResult, (void *) msg);
+    delete pyCallback;
 }
 
 
@@ -180,11 +181,14 @@ void PySendExceptionCallback(CMQException e, CMessage *msg, void *pyCallback){
     PyThreadStateLock PyThreadLock;  // ensure hold GIL, before call python callback
     PyCallback *callback = (PyCallback *)pyCallback;
     boost::python::call<void>(callback->exceptionCallback, (void *) msg, e);
+    delete pyCallback;
 }
 
 int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback, PyObject *sendExceptionCallback){
-    PyCallback pyCallback = {sendSuccessCallback, sendExceptionCallback};
-    return SendAsync((CProducer *) producer,  (CMessage *) msg, &PySendSuccessCallback, &PySendExceptionCallback, &pyCallback);
+    PyCallback* pyCallback = new PyCallback();
+    pyCallback->successCallback = sendSuccessCallback;
+    pyCallback->exceptionCallback = sendExceptionCallback;
+    return SendAsync((CProducer *) producer,  (CMessage *) msg, &PySendSuccessCallback, &PySendExceptionCallback, (void *)pyCallback);
 }
 
 
