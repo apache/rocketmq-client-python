@@ -37,6 +37,25 @@ typedef struct _PySendResult_ {
     }
 } PySendResult;
 
+typedef struct _PyMQException_ {
+    int error;
+    int line;
+    char file[MAX_EXEPTION_FILE_LENGTH];
+    char msg[MAX_EXEPTION_MSG_LENGTH];
+    char type[MAX_EXEPTION_TYPE_LENGTH];
+
+    const char *GetFile() {
+        return (const char *) file;
+    }
+    const char *GetMsg() {
+        return (const char *) msg;
+    }
+    const char *GetType() {
+        return (const char *) type;
+    }
+} PyMQException;
+
+
 typedef struct _PyMessageExt_ {
     CMessageExt *pMessageExt;
 } PyMessageExt;

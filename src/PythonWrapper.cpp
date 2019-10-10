@@ -179,8 +179,17 @@ void PySendSuccessCallback(CSendResult result, CMessage *msg, void *pyCallback){
 
 void PySendExceptionCallback(CMQException e, CMessage *msg, void *pyCallback){
     PyThreadStateLock PyThreadLock;  // ensure hold GIL, before call python callback
+    PyMQException exception;
     PyCallback *callback = (PyCallback *)pyCallback;
-    boost::python::call<void>(callback->exceptionCallback, (void *) msg, e);
+    exception.error = e.error;
+    exception.line = e.line;
+    strncpy(exception.file, e.file, MAX_EXEPTION_FILE_LENGTH - 1);
+    exception.file[MAX_EXEPTION_FILE_LENGTH - 1] = 0;
+    strncpy(exception.msg, e.msg, MAX_EXEPTION_MSG_LENGTH - 1);
+    exception.msg[MAX_EXEPTION_MSG_LENGTH - 1] = 0;
+    strncpy(exception.type, e.type, MAX_EXEPTION_TYPE_LENGTH - 1);
+    exception.type[MAX_EXEPTION_TYPE_LENGTH - 1] = 0;
+    boost::python::call<void>(callback->exceptionCallback, (void *) msg, exception);
     delete pyCallback;
 }
 
@@ -332,6 +341,13 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
             .def_readonly("sendStatus", &PySendResult::sendStatus, "sendStatus")
             .def("GetMsgId", &PySendResult::GetMsgId);
     class_<PyMessageExt>("CMessageExt");
+
+    class_<PyMQException>("MQException")
+            .def_readonly("error", &PyMQException::error, "error")
+            .def_readonly("line", &PyMQException::line, "line")
+            .def("GetFile", &PyMQException::GetFile)
+            .def("GetMsg", &PyMQException::GetMsg)
+            .def("GetType", &PyMQException::GetType);
 
     //For Message
     def("CreateMessage", PyCreateMessage, return_value_policy<return_opaque_pointer>());
