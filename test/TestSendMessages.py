@@ -250,11 +250,11 @@ def send_message_async(count):
 
 def send_message_async_success(result, msg):
     print 'send success'
-    pass
+    print 'msg id =' + result.GetMsgId()
 
 def send_message_async_fail(msg, exception):
-    print 'send failed'
-    pass
+    print 'send message failed'
+    print 'error msg: ' + exception.GetMsg()
 
 if __name__ == '__main__':
     send_message_orderly(10)
