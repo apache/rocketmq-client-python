@@ -245,7 +245,8 @@ def send_message_async(count):
 
         SendMessageAsync(producer, msg, send_message_async_success, send_message_async_fail)
         DestroyMessage(msg)
-        print 'send done'
+    print 'send async message done'
+    time.sleep(10000)
 
 def send_message_async_success(result, msg):
     print 'send success'
