@@ -26,6 +26,7 @@ name_srv = '127.0.0.1:9876'
 
 def init_producer():
     producer = CreateProducer('TestProducer')
+    SetProducerLogLevel(producer, CLogLevel.E_LOG_LEVEL_INFO)
     SetProducerNameServerAddress(producer, name_srv)
     StartProducer(producer)
     return producer
