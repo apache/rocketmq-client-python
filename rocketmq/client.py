@@ -73,6 +73,9 @@ class Message(object):
 def maybe_decode(val):
     if isinstance(val, binary_type):
         return val.decode('utf-8')
+    elif isinstance(val, text_type):
+        return val
+    raise TypeError('Expects string types, got %s', type(val))
 
 
 class RecvMessage(object):
