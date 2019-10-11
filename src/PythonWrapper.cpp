@@ -162,7 +162,18 @@ int PySetProducerCompressLevel(void *producer, int level) {
 int PySetProducerMaxMessageSize(void *producer, int size) {
     return SetProducerMaxMessageSize((CProducer *)producer, size);
 }
-
+int PySetProducerLogPath(void *producer, const char *logPath) {
+    return SetProducerLogPath((CProducer *) producer, logPath);
+}
+int PySetProducerLogFileNumAndSize(void *producer, int fileNum, long fileSize) {
+    return SetProducerLogFileNumAndSize((CProducer *) producer, fileNum, fileSize);
+}
+int PySetProducerLogLevel(void *producer, CLogLevel level) {
+    return SetProducerLogLevel((CProducer *) producer, level);
+}
+int PySetProducerSendMsgTimeout(void *producer, int timeout) {
+    return SetProducerSendMsgTimeout((CProducer *) producer, timeout);
+}
 
 PySendResult PySendMessageSync(void *producer, void *msg) {
     PySendResult ret;
@@ -443,6 +454,11 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("SetProducerSessionCredentials", PySetProducerSessionCredentials);
     def("SetProducerCompressLevel", PySetProducerCompressLevel);
     def("SetProducerMaxMessageSize", PySetProducerMaxMessageSize);
+    def("SetProducerSendMsgTimeout", PySetProducerSendMsgTimeout);
+
+    def("SetProducerLogPath", PySetProducerLogPath);
+    def("SetProducerLogFileNumAndSize", PySetProducerLogFileNumAndSize);
+    def("SetProducerLogLevel", PySetProducerLogLevel);
 
     def("SendMessageSync", PySendMessageSync);
     def("SendMessageAsync", PySendMessageAsync);

@@ -115,6 +115,10 @@ int PySetProducerInstanceName(void *producer, const char *instanceName);
 int PySetProducerSessionCredentials(void *producer, const char *accessKey, const char *secretKey, const char *channel);
 int PySetProducerCompressLevel(void *producer, int level);
 int PySetProducerMaxMessageSize(void *producer, int size);
+int PySetProducerLogPath(void *producer, const char *logPath);
+int PySetProducerLogFileNumAndSize(void *producer, int fileNum, long fileSize);
+int PySetProducerLogLevel(void *producer, CLogLevel level);
+int PySetProducerSendMsgTimeout(void *producer, int timeout);
 
 PySendResult PySendMessageSync(void *producer, void *msg);
 int PySendMessageOneway(void *producer, void *msg);
