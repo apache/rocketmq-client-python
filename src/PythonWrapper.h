@@ -18,6 +18,7 @@
 #include "CCommon.h"
 #include "CMessage.h"
 #include "CMessageExt.h"
+#include "CBatchMessage.h"
 #include "CSendResult.h"
 #include "CProducer.h"
 #include "CPushConsumer.h"
@@ -122,7 +123,7 @@ void PySendSuccessCallback(CSendResult result, CMessage *msg, void *pyCallback);
 void PySendExceptionCallback(CMQException e, CMessage *msg, void *pyCallback);
 int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback, PyObject *sendExceptionCallback);
 
-PySendResult PySendBatchMessage(void *producer, CBatchMessage *msg);
+PySendResult PySendBatchMessage(void *producer, void *msg);
 PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes, void *args, PyObject *queueSelector);
 PySendResult PySendMessageOrderlyByShardingKey(void *producer, void *msg, const char *shardingKey);
 

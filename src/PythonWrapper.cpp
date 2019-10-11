@@ -17,6 +17,7 @@
 #include "CCommon.h"
 #include "CMessage.h"
 #include "CMessageExt.h"
+#include "CBatchMessage.h"
 #include "CSendResult.h"
 #include "CProducer.h"
 #include "CPushConsumer.h"
@@ -99,9 +100,11 @@ int PySetMessageDelayTimeLevel(void *msg, int level) {
 void *PyCreateBatchMessage() {
     return (void *) CreateBatchMessage();
 }
+
 int PyAddMessage(void *batchMsg, void *msg) {
     return AddMessage((CBatchMessage *) batchMsg, (CMessage *) msg);
 }
+
 int PyDestroyBatchMessage(void *batchMsg) {
     return DestroyBatchMessage((CBatchMessage *) batchMsg);
 }
@@ -212,7 +215,7 @@ int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback,
     return SendAsync((CProducer *) producer,  (CMessage *) msg, &PySendSuccessCallback, &PySendExceptionCallback, (void *)pyCallback);
 }
 
-PySendResult PySendBatchMessage(void *producer, CBatchMessage *batchMessage) {
+PySendResult PySendBatchMessage(void *producer, void *batchMessage) {
     PySendResult ret;
     CSendResult result;
     SendBatchMessage((CProducer *) producer, (CBatchMessage *) batchMessage, &result);
