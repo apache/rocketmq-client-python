@@ -50,13 +50,13 @@ def consumer_message(msg, args):
 
     print 'map.name %s' % GetMessageProperty(msg, 'name')
     print 'map.id %s' % GetMessageProperty(msg, 'id')
-    return 0
-
+    return CConsumeStatus.E_CONSUME_SUCCESS
 
 def init_consumer(_group, _topic, _tag):
     consumer = CreatePushConsumer(_group)
     SetPushConsumerNameServerAddress(consumer, name_srv)
     SetPushConsumerThreadCount(consumer, 1)
+    SetPushConsumerMessageModel(consumer, CMessageModel.CLUSTERING)
     Subscribe(consumer, _topic, _tag)
     RegisterMessageCallback(consumer, consumer_message, None)
     StartPushConsumer(consumer)

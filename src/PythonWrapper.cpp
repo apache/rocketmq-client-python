@@ -17,6 +17,7 @@
 #include "CCommon.h"
 #include "CMessage.h"
 #include "CMessageExt.h"
+#include "CBatchMessage.h"
 #include "CSendResult.h"
 #include "CProducer.h"
 #include "CPushConsumer.h"
@@ -94,6 +95,20 @@ int PySetMessageProperty(void *msg, const char *key, const char *value) {
 int PySetMessageDelayTimeLevel(void *msg, int level) {
     return SetDelayTimeLevel((CMessage *) msg, level);
 }
+
+//batch message
+void *PyCreateBatchMessage() {
+    return (void *) CreateBatchMessage();
+}
+
+int PyAddMessage(void *batchMsg, void *msg) {
+    return AddMessage((CBatchMessage *) batchMsg, (CMessage *) msg);
+}
+
+int PyDestroyBatchMessage(void *batchMsg) {
+    return DestroyBatchMessage((CBatchMessage *) batchMsg);
+}
+
 //messageExt
 const char *PyGetMessageTopic(PyMessageExt msgExt) {
     return GetMessageTopic((CMessageExt *) msgExt.pMessageExt);
@@ -200,6 +215,16 @@ int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback,
     return SendAsync((CProducer *) producer,  (CMessage *) msg, &PySendSuccessCallback, &PySendExceptionCallback, (void *)pyCallback);
 }
 
+PySendResult PySendBatchMessage(void *producer, void *batchMessage) {
+    PySendResult ret;
+    CSendResult result;
+    SendBatchMessage((CProducer *) producer, (CBatchMessage *) batchMessage, &result);
+    ret.sendStatus = result.sendStatus;
+    ret.offset = result.offset;
+    strncpy(ret.msgId, result.msgId, MAX_MESSAGE_ID_LENGTH - 1);
+    ret.msgId[MAX_MESSAGE_ID_LENGTH - 1] = 0;
+    return ret;
+}
 
 
 PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes, void *args, PyObject *queueSelector) {
@@ -272,6 +297,12 @@ int PyRegisterMessageCallback(void *consumer, PyObject *pCallback, object args) 
     return RegisterMessageCallback(consumerInner, &PythonMessageCallBackInner);
 }
 
+int PyRegisterMessageCallbackOrderly(void *consumer, PyObject *pCallback, object args){
+    CPushConsumer *consumerInner = (CPushConsumer *) consumer;
+    g_CallBackMap[consumerInner] = make_pair(pCallback, std::move(args));
+    return RegisterMessageCallbackOrderly(consumerInner, &PythonMessageCallBackInner);
+}
+
 int PythonMessageCallBackInner(CPushConsumer *consumer, CMessageExt *msg) {
     PyThreadStateLock PyThreadLock;  // ensure hold GIL, before call python callback
     PyMessageExt message = { .pMessageExt = msg };
@@ -301,6 +332,9 @@ int PySetPushConsumerInstanceName(void *consumer, const char *instanceName){
 int PySetPushConsumerSessionCredentials(void *consumer, const char *accessKey, const char *secretKey,
                                        const char *channel){
     return SetPushConsumerSessionCredentials((CPushConsumer *)consumer, accessKey, secretKey, channel);
+}
+int PySetPushConsumerMessageModel(void *consumer, CMessageModel messageModel) {
+    return SetPushConsumerMessageModel((CPushConsumer *) consumer, messageModel);
 }
 
 //push consumer
@@ -348,6 +382,10 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
             .def("GetFile", &PyMQException::GetFile)
             .def("GetMsg", &PyMQException::GetMsg)
             .def("GetType", &PyMQException::GetType);
+    enum_<CMessageModel>("CMessageModel")
+            .value("BROADCASTING", BROADCASTING)
+            .value("CLUSTERING", CLUSTERING);
+
 
     //For Message
     def("CreateMessage", PyCreateMessage, return_value_policy<return_opaque_pointer>());
@@ -359,6 +397,11 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("SetByteMessageBody", PySetByteMessageBody);
     def("SetMessageProperty", PySetMessageProperty);
     def("SetDelayTimeLevel", PySetMessageDelayTimeLevel);
+
+    //For batch message
+    def("CreateBatchMessage", PyCreateBatchMessage, return_value_policy<return_opaque_pointer>());
+    def("AddMessage", PyAddMessage);
+    def("DestroyBatchMessage", PyDestroyBatchMessage);
 
     //For MessageExt
     def("GetMessageTopic", PyGetMessageTopic);
@@ -382,6 +425,7 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
 
     def("SendMessageSync", PySendMessageSync);
     def("SendMessageAsync", PySendMessageAsync);
+    def("SendBatchMessage", PySendBatchMessage);
 
     def("SendMessageOneway", PySendMessageOneway);
     def("SendMessageOrderly", PySendMessageOrderly);
@@ -400,9 +444,11 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("SetPushConsumerSessionCredentials", PySetPushConsumerSessionCredentials);
     def("Subscribe", PySubscribe);
     def("RegisterMessageCallback", PyRegisterMessageCallback);
+    def("RegisterMessageCallbackOrderly", PyRegisterMessageCallbackOrderly);
 
     //pull consumer
     def("SetPullConsumerNameServerDomain", PySetPullConsumerNameServerDomain);
+    def("SetPushConsumerMessageModel", PySetPushConsumerMessageModel);
 
     //For Version
     def("GetVersion", PyGetVersion);

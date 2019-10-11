@@ -18,6 +18,7 @@
 #include "CCommon.h"
 #include "CMessage.h"
 #include "CMessageExt.h"
+#include "CBatchMessage.h"
 #include "CSendResult.h"
 #include "CProducer.h"
 #include "CPushConsumer.h"
@@ -47,9 +48,11 @@ typedef struct _PyMQException_ {
     const char *GetFile() {
         return (const char *) file;
     }
+
     const char *GetMsg() {
         return (const char *) msg;
     }
+
     const char *GetType() {
         return (const char *) type;
     }
@@ -88,6 +91,11 @@ int PySetByteMessageBody(void *msg, const char *body, int len);
 int PySetMessageProperty(void *msg, const char *key, const char *value);
 int PySetMessageDelayTimeLevel(void *msg, int level);
 
+//batch message
+void *PyCreateBatchMessage();
+int PyAddMessage(void *batchMsg, void *msg);
+int PyDestroyBatchMessage(void *batchMsg);
+
 //messageExt
 const char *PyGetMessageTopic(PyMessageExt msgExt);
 const char *PyGetMessageTags(PyMessageExt msgExt);
@@ -115,7 +123,7 @@ void PySendSuccessCallback(CSendResult result, CMessage *msg, void *pyCallback);
 void PySendExceptionCallback(CMQException e, CMessage *msg, void *pyCallback);
 int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback, PyObject *sendExceptionCallback);
 
-
+PySendResult PySendBatchMessage(void *producer, void *msg);
 PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes, void *args, PyObject *queueSelector);
 PySendResult PySendMessageOrderlyByShardingKey(void *producer, void *msg, const char *shardingKey);
 
@@ -133,12 +141,14 @@ int PySetPushConsumerNameServerAddress(void *consumer, const char *namesrv);
 int PySetPushConsumerNameServerDomain(void *consumer, const char *domain);
 int PySubscribe(void *consumer, const char *topic, const char *expression);
 int PyRegisterMessageCallback(void *consumer, PyObject *pCallback, object args);
+int PyRegisterMessageCallbackOrderly(void *consumer, PyObject *pCallback, object args);
 int PythonMessageCallBackInner(CPushConsumer *consumer, CMessageExt *msg);
 int PySetPushConsumerThreadCount(void *consumer, int threadCount);
 int PySetPushConsumerMessageBatchMaxSize(void *consumer, int batchSize);
 int PySetPushConsumerInstanceName(void *consumer, const char *instanceName);
 int PySetPushConsumerSessionCredentials(void *consumer, const char *accessKey, const char *secretKey,
-                                     const char *channel);
+                                        const char *channel);
+int PySetPushConsumerMessageModel(void *consumer, CMessageModel messageModel);
 
 //push consumer
 int PySetPullConsumerNameServerDomain(void *consumer, const char *domain);
