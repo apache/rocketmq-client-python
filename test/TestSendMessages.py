@@ -214,8 +214,47 @@ def send_message_orderly(count):
         DestroyMessage(msg)
         print 'msg id =' + result.GetMsgId()
 
+def send_message_orderly_with_shardingkey(count):
+    key = 'rmq-key'
+    print 'start sending sharding key order-ly message'
+    tag = 'test'
+    for n in range(count):
+        body = 'hi rmq sharding orderly-message, now is' + str(n)
+        msg = CreateMessage(topic_orderly)
+        SetMessageBody(msg, body)
+        SetMessageKeys(msg, key)
+        SetMessageTags(msg, tag)
+
+        result = SendMessageOrderlyByShardingKey(producer, msg, 'orderId')
+        DestroyMessage(msg)
+        print 'msg id =' + result.GetMsgId()
+
 def calc_which_queue_to_send(size, msg, arg): ## it is index start with 0....
     return 0
-    
+
+def send_message_async(count):
+    key = 'rmq-key'
+    print 'start sending message'
+    tag = 'test'
+    for n in range(count):
+        body = 'hi rmq message, now is' + str(n)
+        msg = CreateMessage(topic)
+        SetMessageBody(msg, body)
+        SetMessageKeys(msg, key)
+        SetMessageTags(msg, tag)
+
+        SendMessageAsync(producer, msg, send_message_async_success, send_message_async_fail)
+        DestroyMessage(msg)
+    print 'send async message done'
+    time.sleep(10000)
+
+def send_message_async_success(result, msg):
+    print 'send success'
+    print 'msg id =' + result.GetMsgId()
+
+def send_message_async_fail(msg, exception):
+    print 'send message failed'
+    print 'error msg: ' + exception.GetMsg()
+
 if __name__ == '__main__':
     send_message_orderly(10)

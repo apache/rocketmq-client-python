@@ -22,6 +22,7 @@
 #include "CProducer.h"
 #include "CPushConsumer.h"
 #include "CPullConsumer.h"
+#include "CMQException.h"
 #include <boost/python.hpp>
 
 using namespace boost::python;
@@ -36,6 +37,25 @@ typedef struct _PySendResult_ {
     }
 } PySendResult;
 
+typedef struct _PyMQException_ {
+    int error;
+    int line;
+    char file[MAX_EXEPTION_FILE_LENGTH];
+    char msg[MAX_EXEPTION_MSG_LENGTH];
+    char type[MAX_EXEPTION_TYPE_LENGTH];
+
+    const char *GetFile() {
+        return (const char *) file;
+    }
+    const char *GetMsg() {
+        return (const char *) msg;
+    }
+    const char *GetType() {
+        return (const char *) type;
+    }
+} PyMQException;
+
+
 typedef struct _PyMessageExt_ {
     CMessageExt *pMessageExt;
 } PyMessageExt;
@@ -44,6 +64,11 @@ typedef struct _PyUserData_ {
     PyObject *pyObject;
     void *pData;
 } PyUserData;
+
+typedef struct _PyCallback_ {
+    PyObject *successCallback;
+    PyObject *exceptionCallback;
+} PyCallback;
 
 #define PYTHON_CLIENT_VERSION "1.2.0"
 #define PYCLI_BUILD_DATE "04-12-2018"
@@ -80,10 +105,20 @@ int PySetProducerNameServerAddress(void *producer, const char *namesrv);
 int PySetProducerNameServerDomain(void *producer, const char *domain);
 int PySetProducerInstanceName(void *producer, const char *instanceName);
 int PySetProducerSessionCredentials(void *producer, const char *accessKey, const char *secretKey, const char *channel);
+int PySetProducerCompressLevel(void *producer, int level);
+int PySetProducerMaxMessageSize(void *producer, int size);
+
 PySendResult PySendMessageSync(void *producer, void *msg);
 int PySendMessageOneway(void *producer, void *msg);
-// PySendResult PySendMessageOrderly(void *producer, void *msg , int autoRetryTimes, PyObject *args, PyObject *callback);
+
+void PySendSuccessCallback(CSendResult result, CMessage *msg, void *pyCallback);
+void PySendExceptionCallback(CMQException e, CMessage *msg, void *pyCallback);
+int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback, PyObject *sendExceptionCallback);
+
+
 PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes, void *args, PyObject *queueSelector);
+PySendResult PySendMessageOrderlyByShardingKey(void *producer, void *msg, const char *shardingKey);
+
 int PyOrderlyCallbackInner(int size, CMessage *msg, void *args);
 
 //sendResult
