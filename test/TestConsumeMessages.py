@@ -56,6 +56,7 @@ def init_consumer(_group, _topic, _tag):
     consumer = CreatePushConsumer(_group)
     SetPushConsumerNameServerAddress(consumer, name_srv)
     SetPushConsumerThreadCount(consumer, 1)
+    SetPushConsumerLogLevel(consumer, CLogLevel.E_LOG_LEVEL_INFO)
     SetPushConsumerMessageModel(consumer, CMessageModel.CLUSTERING)
     Subscribe(consumer, _topic, _tag)
     RegisterMessageCallback(consumer, consumer_message, None)

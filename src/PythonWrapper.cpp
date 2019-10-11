@@ -162,7 +162,18 @@ int PySetProducerCompressLevel(void *producer, int level) {
 int PySetProducerMaxMessageSize(void *producer, int size) {
     return SetProducerMaxMessageSize((CProducer *)producer, size);
 }
-
+int PySetProducerLogPath(void *producer, const char *logPath) {
+    return SetProducerLogPath((CProducer *) producer, logPath);
+}
+int PySetProducerLogFileNumAndSize(void *producer, int fileNum, long fileSize) {
+    return SetProducerLogFileNumAndSize((CProducer *) producer, fileNum, fileSize);
+}
+int PySetProducerLogLevel(void *producer, CLogLevel level) {
+    return SetProducerLogLevel((CProducer *) producer, level);
+}
+int PySetProducerSendMsgTimeout(void *producer, int timeout) {
+    return SetProducerSendMsgTimeout((CProducer *) producer, timeout);
+}
 
 PySendResult PySendMessageSync(void *producer, void *msg) {
     PySendResult ret;
@@ -337,6 +348,18 @@ int PySetPushConsumerMessageModel(void *consumer, CMessageModel messageModel) {
     return SetPushConsumerMessageModel((CPushConsumer *) consumer, messageModel);
 }
 
+int PySetPushConsumerLogPath(void *consumer, const char *logPath) {
+    return SetPushConsumerLogPath((CPushConsumer *) consumer, logPath);
+}
+
+int PySetPushConsumerLogFileNumAndSize(void *consumer, int fileNum, long fileSize) {
+    return SetPushConsumerLogFileNumAndSize((CPushConsumer *) consumer, fileNum, fileSize);
+}
+
+int PySetPushConsumerLogLevel(void *consumer, CLogLevel level) {
+    return SetPushConsumerLogLevel((CPushConsumer *) consumer, level);
+}
+
 //push consumer
 int PySetPullConsumerNameServerDomain(void *consumer, const char *domain) {
     return SetPullConsumerNameServerDomain((CPullConsumer *) consumer, domain);
@@ -386,6 +409,15 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
             .value("BROADCASTING", BROADCASTING)
             .value("CLUSTERING", CLUSTERING);
 
+    enum_<CLogLevel>("CLogLevel")
+            .value("E_LOG_LEVEL_FATAL", E_LOG_LEVEL_FATAL)
+            .value("E_LOG_LEVEL_ERROR", E_LOG_LEVEL_ERROR)
+            .value("E_LOG_LEVEL_WARN", E_LOG_LEVEL_WARN)
+            .value("E_LOG_LEVEL_INFO", E_LOG_LEVEL_INFO)
+            .value("E_LOG_LEVEL_DEBUG", E_LOG_LEVEL_DEBUG)
+            .value("E_LOG_LEVEL_TRACE", E_LOG_LEVEL_TRACE)
+            .value("E_LOG_LEVEL_LEVEL_NUM", E_LOG_LEVEL_LEVEL_NUM);
+
 
     //For Message
     def("CreateMessage", PyCreateMessage, return_value_policy<return_opaque_pointer>());
@@ -422,6 +454,11 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("SetProducerSessionCredentials", PySetProducerSessionCredentials);
     def("SetProducerCompressLevel", PySetProducerCompressLevel);
     def("SetProducerMaxMessageSize", PySetProducerMaxMessageSize);
+    def("SetProducerSendMsgTimeout", PySetProducerSendMsgTimeout);
+
+    def("SetProducerLogPath", PySetProducerLogPath);
+    def("SetProducerLogFileNumAndSize", PySetProducerLogFileNumAndSize);
+    def("SetProducerLogLevel", PySetProducerLogLevel);
 
     def("SendMessageSync", PySendMessageSync);
     def("SendMessageAsync", PySendMessageAsync);
@@ -445,6 +482,9 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("Subscribe", PySubscribe);
     def("RegisterMessageCallback", PyRegisterMessageCallback);
     def("RegisterMessageCallbackOrderly", PyRegisterMessageCallbackOrderly);
+    def("SetPushConsumerLogPath", PySetPushConsumerLogPath);
+    def("SetPushConsumerLogFileNumAndSize", PySetPushConsumerLogFileNumAndSize);
+    def("SetPushConsumerLogLevel", PySetPushConsumerLogLevel);
 
     //pull consumer
     def("SetPullConsumerNameServerDomain", PySetPullConsumerNameServerDomain);

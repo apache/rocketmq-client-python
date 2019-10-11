@@ -115,6 +115,10 @@ int PySetProducerInstanceName(void *producer, const char *instanceName);
 int PySetProducerSessionCredentials(void *producer, const char *accessKey, const char *secretKey, const char *channel);
 int PySetProducerCompressLevel(void *producer, int level);
 int PySetProducerMaxMessageSize(void *producer, int size);
+int PySetProducerLogPath(void *producer, const char *logPath);
+int PySetProducerLogFileNumAndSize(void *producer, int fileNum, long fileSize);
+int PySetProducerLogLevel(void *producer, CLogLevel level);
+int PySetProducerSendMsgTimeout(void *producer, int timeout);
 
 PySendResult PySendMessageSync(void *producer, void *msg);
 int PySendMessageOneway(void *producer, void *msg);
@@ -146,9 +150,11 @@ int PythonMessageCallBackInner(CPushConsumer *consumer, CMessageExt *msg);
 int PySetPushConsumerThreadCount(void *consumer, int threadCount);
 int PySetPushConsumerMessageBatchMaxSize(void *consumer, int batchSize);
 int PySetPushConsumerInstanceName(void *consumer, const char *instanceName);
-int PySetPushConsumerSessionCredentials(void *consumer, const char *accessKey, const char *secretKey,
-                                        const char *channel);
+int PySetPushConsumerSessionCredentials(void *consumer, const char *accessKey, const char *secretKey, const char *channel);
 int PySetPushConsumerMessageModel(void *consumer, CMessageModel messageModel);
+int PySetPushConsumerLogPath(void *consumer, const char *logPath);
+int PySetPushConsumerLogFileNumAndSize(void *consumer, int fileNum, long fileSize);
+int PySetPushConsumerLogLevel(void *consumer, CLogLevel level);
 
 //push consumer
 int PySetPullConsumerNameServerDomain(void *consumer, const char *domain);
