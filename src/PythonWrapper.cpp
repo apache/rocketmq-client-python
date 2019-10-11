@@ -337,6 +337,18 @@ int PySetPushConsumerMessageModel(void *consumer, CMessageModel messageModel) {
     return SetPushConsumerMessageModel((CPushConsumer *) consumer, messageModel);
 }
 
+int PySetPushConsumerLogPath(void *consumer, const char *logPath) {
+    return SetPushConsumerLogPath((CPushConsumer *) consumer, logPath);
+}
+
+int PySetPushConsumerLogFileNumAndSize(void *consumer, int fileNum, long fileSize) {
+    return SetPushConsumerLogFileNumAndSize((CPushConsumer *) consumer, fileNum, fileSize);
+}
+
+int PySetPushConsumerLogLevel(void *consumer, CLogLevel level) {
+    return SetPushConsumerLogLevel((CPushConsumer *) consumer, level);
+}
+
 //push consumer
 int PySetPullConsumerNameServerDomain(void *consumer, const char *domain) {
     return SetPullConsumerNameServerDomain((CPullConsumer *) consumer, domain);
@@ -385,6 +397,15 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     enum_<CMessageModel>("CMessageModel")
             .value("BROADCASTING", BROADCASTING)
             .value("CLUSTERING", CLUSTERING);
+
+    enum_<CLogLevel>("CLogLevel")
+            .value("E_LOG_LEVEL_FATAL", E_LOG_LEVEL_FATAL)
+            .value("E_LOG_LEVEL_ERROR", E_LOG_LEVEL_ERROR)
+            .value("E_LOG_LEVEL_WARN", E_LOG_LEVEL_WARN)
+            .value("E_LOG_LEVEL_INFO", E_LOG_LEVEL_INFO)
+            .value("E_LOG_LEVEL_DEBUG", E_LOG_LEVEL_DEBUG)
+            .value("E_LOG_LEVEL_TRACE", E_LOG_LEVEL_TRACE)
+            .value("E_LOG_LEVEL_LEVEL_NUM", E_LOG_LEVEL_LEVEL_NUM);
 
 
     //For Message
@@ -445,6 +466,9 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("Subscribe", PySubscribe);
     def("RegisterMessageCallback", PyRegisterMessageCallback);
     def("RegisterMessageCallbackOrderly", PyRegisterMessageCallbackOrderly);
+    def("SetPushConsumerLogPath", PySetPushConsumerLogPath);
+    def("SetPushConsumerLogFileNumAndSize", PySetPushConsumerLogFileNumAndSize);
+    def("SetPushConsumerLogLevel", PySetPushConsumerLogLevel);
 
     //pull consumer
     def("SetPullConsumerNameServerDomain", PySetPullConsumerNameServerDomain);
