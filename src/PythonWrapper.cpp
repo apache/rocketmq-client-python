@@ -297,6 +297,12 @@ int PyRegisterMessageCallback(void *consumer, PyObject *pCallback, object args) 
     return RegisterMessageCallback(consumerInner, &PythonMessageCallBackInner);
 }
 
+int PyRegisterMessageCallbackOrderly(void *consumer, PyObject *pCallback, object args){
+    CPushConsumer *consumerInner = (CPushConsumer *) consumer;
+    g_CallBackMap[consumerInner] = make_pair(pCallback, std::move(args));
+    return RegisterMessageCallbackOrderly(consumerInner, &PythonMessageCallBackInner);
+}
+
 int PythonMessageCallBackInner(CPushConsumer *consumer, CMessageExt *msg) {
     PyThreadStateLock PyThreadLock;  // ensure hold GIL, before call python callback
     PyMessageExt message = { .pMessageExt = msg };
@@ -438,6 +444,7 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("SetPushConsumerSessionCredentials", PySetPushConsumerSessionCredentials);
     def("Subscribe", PySubscribe);
     def("RegisterMessageCallback", PyRegisterMessageCallback);
+    def("RegisterMessageCallbackOrderly", PyRegisterMessageCallbackOrderly);
 
     //pull consumer
     def("SetPullConsumerNameServerDomain", PySetPullConsumerNameServerDomain);

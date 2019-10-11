@@ -141,13 +141,14 @@ int PySetPushConsumerNameServerAddress(void *consumer, const char *namesrv);
 int PySetPushConsumerNameServerDomain(void *consumer, const char *domain);
 int PySubscribe(void *consumer, const char *topic, const char *expression);
 int PyRegisterMessageCallback(void *consumer, PyObject *pCallback, object args);
+int PyRegisterMessageCallbackOrderly(void *consumer, PyObject *pCallback, object args);
 int PythonMessageCallBackInner(CPushConsumer *consumer, CMessageExt *msg);
 int PySetPushConsumerThreadCount(void *consumer, int threadCount);
 int PySetPushConsumerMessageBatchMaxSize(void *consumer, int batchSize);
 int PySetPushConsumerInstanceName(void *consumer, const char *instanceName);
 int PySetPushConsumerSessionCredentials(void *consumer, const char *accessKey, const char *secretKey,
                                         const char *channel);
-int PySetPushConsumerMessageModel(void* consumer, CMessageModel messageModel);
+int PySetPushConsumerMessageModel(void *consumer, CMessageModel messageModel);
 
 //push consumer
 int PySetPullConsumerNameServerDomain(void *consumer, const char *domain);
