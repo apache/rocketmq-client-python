@@ -269,10 +269,11 @@ def send_batch_message(batch_count):
         SetMessageKeys(msg, key)
         SetMessageTags(msg, tag)
         AddMessage(batchMsg, msg)
+        DestroyMessage(msg)
 
     SendBatchMessage(producer, batchMsg)
-    DestroyMessage(batchMsg)
+    DestroyBatchMessage(batchMsg)
     print 'send batch message done'
 
 if __name__ == '__main__':
-    send_batch_message(10)
+    send_message_async(10)
