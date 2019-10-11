@@ -256,5 +256,23 @@ def send_message_async_fail(msg, exception):
     print 'send message failed'
     print 'error msg: ' + exception.GetMsg()
 
+def send_batch_message(batch_count):
+    key = 'rmq-key'
+    print 'start send batch message'
+    tag = 'test'
+    batchMsg = CreateBatchMessage()
+
+    for n in range(count):
+        body = 'hi rmq message, now is' + str(n)
+        msg = CreateMessage(topic)
+        SetMessageBody(msg, body)
+        SetMessageKeys(msg, key)
+        SetMessageTags(msg, tag)
+        AddMessage(batchMsg, msg)
+
+    SendBatchMessage(producer, batchMsg)
+    DestroyMessage(batchMsg)
+    print 'send batch message done'
+
 if __name__ == '__main__':
-    send_message_orderly(10)
+    send_batch_message(10)

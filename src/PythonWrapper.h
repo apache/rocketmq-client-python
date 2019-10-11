@@ -147,6 +147,7 @@ int PySetPushConsumerMessageBatchMaxSize(void *consumer, int batchSize);
 int PySetPushConsumerInstanceName(void *consumer, const char *instanceName);
 int PySetPushConsumerSessionCredentials(void *consumer, const char *accessKey, const char *secretKey,
                                         const char *channel);
+int PySetPushConsumerMessageModel(void* consumer, CMessageModel messageModel);
 
 //push consumer
 int PySetPullConsumerNameServerDomain(void *consumer, const char *domain);

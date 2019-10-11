@@ -327,6 +327,9 @@ int PySetPushConsumerSessionCredentials(void *consumer, const char *accessKey, c
                                        const char *channel){
     return SetPushConsumerSessionCredentials((CPushConsumer *)consumer, accessKey, secretKey, channel);
 }
+int PySetPushConsumerMessageModel(void *consumer, CMessageModel messageModel) {
+    return SetPushConsumerMessageModel((CPushConsumer *) consumer, messageModel);
+}
 
 //push consumer
 int PySetPullConsumerNameServerDomain(void *consumer, const char *domain) {
@@ -373,6 +376,10 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
             .def("GetFile", &PyMQException::GetFile)
             .def("GetMsg", &PyMQException::GetMsg)
             .def("GetType", &PyMQException::GetType);
+    enum_<CMessageModel>("CMessageModel")
+            .value("BROADCASTING", BROADCASTING)
+            .value("CLUSTERING", CLUSTERING);
+
 
     //For Message
     def("CreateMessage", PyCreateMessage, return_value_policy<return_opaque_pointer>());
@@ -434,6 +441,7 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
 
     //pull consumer
     def("SetPullConsumerNameServerDomain", PySetPullConsumerNameServerDomain);
+    def("SetPushConsumerMessageModel", PySetPushConsumerMessageModel);
 
     //For Version
     def("GetVersion", PyGetVersion);
