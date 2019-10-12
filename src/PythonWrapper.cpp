@@ -33,6 +33,7 @@ const char *VERSION =
         "PYTHON_CLIENT_VERSION: " PYTHON_CLIENT_VERSION ", BUILD DATE: " PYCLI_BUILD_DATE " ";
 
 map<CPushConsumer *, pair<PyObject *, object>> g_CallBackMap;
+map<CProducer *, PyObject *> g_TransactionCallBackMap;
 
 class PyThreadStateLock {
 public:
@@ -134,6 +135,21 @@ void *PyCreateProducer(const char *groupId) {
     PyEval_InitThreads();  // ensure create GIL, for call Python callback from C.
     return (void *) CreateProducer(groupId);
 }
+
+void *PyCreateTransactionProducer(const char *groupId, PyObject *localTransactionCheckerCallback) {
+    PyEval_InitThreads();
+    CProducer *producer = CreateTransactionProducer(groupId, &PyLocalTransactionCheckerCallback, localTransactionCheckerCallback);
+    g_TransactionCallBackMap[producer] = localTransactionCheckerCallback;
+    return producer;
+}
+
+CTransactionStatus PyLocalTransactionCheckerCallback(CProducer *producer, CMessageExt *msg, void *data) {
+    PyThreadStateLock PyThreadLock;  // ensure hold GIL, before call python callback
+    PyObject * checkerCallback = (PyObject *) data;
+    CTransactionStatus status = boost::python::call<CTransactionStatus>(checkerCallback, (void *) msg);
+    return status;
+}
+
 int PyDestroyProducer(void *producer) {
     return DestroyProducer((CProducer *) producer);
 }
@@ -190,23 +206,23 @@ int PySendMessageOneway(void *producer, void *msg) {
     return SendMessageOneway((CProducer *) producer, (CMessage *) msg);
 }
 
-void PySendSuccessCallback(CSendResult result, CMessage *msg, void *pyCallback){
+void PySendSuccessCallback(CSendResult result, CMessage *msg, void *pyCallback) {
     PyThreadStateLock PyThreadLock;  // ensure hold GIL, before call python callback
     PySendResult sendResult;
     sendResult.sendStatus = result.sendStatus;
     sendResult.offset = result.offset;
     strncpy(sendResult.msgId, result.msgId, MAX_MESSAGE_ID_LENGTH - 1);
     sendResult.msgId[MAX_MESSAGE_ID_LENGTH - 1] = 0;
-    PyCallback *callback = (PyCallback *)pyCallback;
+    PyCallback *callback = (PyCallback *) pyCallback;
     boost::python::call<void>(callback->successCallback, sendResult, (void *) msg);
     delete pyCallback;
 }
 
 
-void PySendExceptionCallback(CMQException e, CMessage *msg, void *pyCallback){
+void PySendExceptionCallback(CMQException e, CMessage *msg, void *pyCallback) {
     PyThreadStateLock PyThreadLock;  // ensure hold GIL, before call python callback
     PyMQException exception;
-    PyCallback *callback = (PyCallback *)pyCallback;
+    PyCallback *callback = (PyCallback *) pyCallback;
     exception.error = e.error;
     exception.line = e.line;
     strncpy(exception.file, e.file, MAX_EXEPTION_FILE_LENGTH - 1);
@@ -219,11 +235,12 @@ void PySendExceptionCallback(CMQException e, CMessage *msg, void *pyCallback){
     delete pyCallback;
 }
 
-int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback, PyObject *sendExceptionCallback){
-    PyCallback* pyCallback = new PyCallback();
+int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback, PyObject *sendExceptionCallback) {
+    PyCallback *pyCallback = new PyCallback();
     pyCallback->successCallback = sendSuccessCallback;
     pyCallback->exceptionCallback = sendExceptionCallback;
-    return SendAsync((CProducer *) producer,  (CMessage *) msg, &PySendSuccessCallback, &PySendExceptionCallback, (void *)pyCallback);
+    return SendAsync((CProducer *) producer, (CMessage *) msg, &PySendSuccessCallback, &PySendExceptionCallback,
+                     (void *) pyCallback);
 }
 
 PySendResult PySendBatchMessage(void *producer, void *batchMessage) {
@@ -241,8 +258,9 @@ PySendResult PySendBatchMessage(void *producer, void *batchMessage) {
 PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes, void *args, PyObject *queueSelector) {
     PySendResult ret;
     CSendResult result;
-    PyUserData userData = {queueSelector,args};
-    SendMessageOrderly((CProducer *) producer, (CMessage *) msg, &PyOrderlyCallbackInner, &userData, autoRetryTimes, &result);
+    PyUserData userData = {queueSelector, args};
+    SendMessageOrderly((CProducer *) producer, (CMessage *) msg, &PyOrderlyCallbackInner, &userData, autoRetryTimes,
+                       &result);
     ret.sendStatus = result.sendStatus;
     ret.offset = result.offset;
     strncpy(ret.msgId, result.msgId, MAX_MESSAGE_ID_LENGTH - 1);
@@ -251,7 +269,7 @@ PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes,
 }
 
 int PyOrderlyCallbackInner(int size, CMessage *msg, void *args) {
-    PyUserData *userData = (PyUserData *)args;
+    PyUserData *userData = (PyUserData *) args;
     int index = boost::python::call<int>(userData->pyObject, size, (void *) msg, userData->pData);
     return index;
 }
@@ -260,6 +278,26 @@ PySendResult PySendMessageOrderlyByShardingKey(void *producer, void *msg, const 
     PySendResult ret;
     CSendResult result;
     SendMessageOrderlyByShardingKey((CProducer *) producer, (CMessage *) msg, shardingKey, &result);
+    ret.sendStatus = result.sendStatus;
+    ret.offset = result.offset;
+    strncpy(ret.msgId, result.msgId, MAX_MESSAGE_ID_LENGTH - 1);
+    ret.msgId[MAX_MESSAGE_ID_LENGTH - 1] = 0;
+    return ret;
+}
+
+CTransactionStatus PyLocalTransactionExecuteCallback(CProducer *producer, CMessage *msg, void *data) {
+    PyUserData *localCallback = (PyUserData *) data;
+    CTransactionStatus status = boost::python::call<CTransactionStatus>(localCallback->pyObject, (void *) msg,
+                                                                        localCallback->pData);
+    return status;
+}
+
+PySendResult PySendMessageInTransaction(void *producer, void *msg, PyObject *localTransactionCallback, void *args) {
+    PyUserData userData = {localTransactionCallback, args};
+    PySendResult ret;
+    CSendResult result;
+    SendMessageTransaction((CProducer *) producer, (CMessage *) msg, &PyLocalTransactionExecuteCallback, &userData,
+                           &result);
     ret.sendStatus = result.sendStatus;
     ret.offset = result.offset;
     strncpy(ret.msgId, result.msgId, MAX_MESSAGE_ID_LENGTH - 1);
@@ -308,7 +346,7 @@ int PyRegisterMessageCallback(void *consumer, PyObject *pCallback, object args) 
     return RegisterMessageCallback(consumerInner, &PythonMessageCallBackInner);
 }
 
-int PyRegisterMessageCallbackOrderly(void *consumer, PyObject *pCallback, object args){
+int PyRegisterMessageCallbackOrderly(void *consumer, PyObject *pCallback, object args) {
     CPushConsumer *consumerInner = (CPushConsumer *) consumer;
     g_CallBackMap[consumerInner] = make_pair(pCallback, std::move(args));
     return RegisterMessageCallbackOrderly(consumerInner, &PythonMessageCallBackInner);
@@ -418,6 +456,10 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
             .value("E_LOG_LEVEL_TRACE", E_LOG_LEVEL_TRACE)
             .value("E_LOG_LEVEL_LEVEL_NUM", E_LOG_LEVEL_LEVEL_NUM);
 
+    enum_<CTransactionStatus>("TransactionStatus")
+            .value("E_COMMIT_TRANSACTION", E_COMMIT_TRANSACTION)
+            .value("E_ROLLBACK_TRANSACTION", E_ROLLBACK_TRANSACTION)
+            .value("E_UNKNOWN_TRANSACTION", E_UNKNOWN_TRANSACTION);
 
     //For Message
     def("CreateMessage", PyCreateMessage, return_value_policy<return_opaque_pointer>());
@@ -445,6 +487,7 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
 
     //For producer
     def("CreateProducer", PyCreateProducer, return_value_policy<return_opaque_pointer>());
+    def("CreateTransactionProducer", PyCreateTransactionProducer, return_value_policy<return_opaque_pointer>());
     def("DestroyProducer", PyDestroyProducer);
     def("StartProducer", PyStartProducer);
     def("ShutdownProducer", PyShutdownProducer);
@@ -467,6 +510,7 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("SendMessageOneway", PySendMessageOneway);
     def("SendMessageOrderly", PySendMessageOrderly);
     def("SendMessageOrderlyByShardingKey", PySendMessageOrderlyByShardingKey);
+    def("SendMessageInTransaction", PySendMessageInTransaction);
 
     //For Consumer
     def("CreatePushConsumer", PyCreatePushConsumer, return_value_policy<return_opaque_pointer>());

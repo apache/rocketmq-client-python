@@ -106,6 +106,10 @@ const char *PyGetMessageId(PyMessageExt msgExt);
 
 //producer
 void *PyCreateProducer(const char *groupId);
+CTransactionStatus PyLocalTransactionCheckerCallback(CProducer *producer, CMessageExt *msg, void *data);
+CTransactionStatus PyLocalTransactionExecuteCallback(CProducer *producer, CMessage *msg, void *data);
+void *PyCreateTransactionProducer(const char *groupId, PyObject *localTransactionCheckerCallback);
+
 int PyDestroyProducer(void *producer);
 int PyStartProducer(void *producer);
 int PyShutdownProducer(void *producer);
@@ -130,6 +134,7 @@ int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback,
 PySendResult PySendBatchMessage(void *producer, void *msg);
 PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes, void *args, PyObject *queueSelector);
 PySendResult PySendMessageOrderlyByShardingKey(void *producer, void *msg, const char *shardingKey);
+PySendResult PySendMessageInTransaction(void *producer , void *msg, PyObject *localTransactionExecuteCallback , void *args);
 
 int PyOrderlyCallbackInner(int size, CMessage *msg, void *args);
 
