@@ -31,8 +31,18 @@ def init_producer():
     StartProducer(producer)
     return producer
 
+def transaction_local_checker(msg):
+    print 'begin check for msg: ' + PyGetMessageId(msg)
+    return TransactionStatus.E_COMMIT_TRANSACTION
 
-producer = init_producer()
+def init_transaction_producer():
+    producer = CreateTransactionProducer('TransactionTestProducer', transaction_local_checker)
+    SetProducerLogLevel(producer, CLogLevel.E_LOG_LEVEL_INFO)
+    SetProducerNameServerAddress(producer, name_srv)
+    StartProducer(producer)
+    return producer
+
+producer = init_transaction_producer()
 tag = 'rmq-tag'
 key = 'rmq-key'
 
@@ -257,24 +267,24 @@ def send_message_async_fail(msg, exception):
     print 'send message failed'
     print 'error msg: ' + exception.GetMsg()
 
-def send_batch_message(batch_count):
+def send_transaction_message(count):
     key = 'rmq-key'
-    print 'start send batch message'
+    print 'start send transaction message'
     tag = 'test'
-    batchMsg = CreateBatchMessage()
-
     for n in range(count):
         body = 'hi rmq message, now is' + str(n)
         msg = CreateMessage(topic)
         SetMessageBody(msg, body)
         SetMessageKeys(msg, key)
         SetMessageTags(msg, tag)
-        AddMessage(batchMsg, msg)
-        DestroyMessage(msg)
 
-    SendBatchMessage(producer, batchMsg)
-    DestroyBatchMessage(batchMsg)
-    print 'send batch message done'
+        SendMessageInTransaction(producer, msg, transaction_local_execute, None)
+    print 'send transaction message done'
+    time.sleep(10000)
+
+def transaction_local_execute(msg, args):
+    print 'begin execute local transaction'
+    return TransactionStatus.E_UNKNOWN_TRANSACTION
 
 if __name__ == '__main__':
-    send_message_async(10)
+    send_transaction_message(10)

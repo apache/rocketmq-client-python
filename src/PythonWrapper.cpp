@@ -33,7 +33,8 @@ const char *VERSION =
         "PYTHON_CLIENT_VERSION: " PYTHON_CLIENT_VERSION ", BUILD DATE: " PYCLI_BUILD_DATE " ";
 
 map<CPushConsumer *, pair<PyObject *, object>> g_CallBackMap;
-map<CProducer *, PyObject *> g_TransactionCallBackMap;
+map<CProducer *, PyObject *> g_TransactionCheckCallBackMap;
+
 
 class PyThreadStateLock {
 public:
@@ -138,16 +139,22 @@ void *PyCreateProducer(const char *groupId) {
 
 void *PyCreateTransactionProducer(const char *groupId, PyObject *localTransactionCheckerCallback) {
     PyEval_InitThreads();
-    CProducer *producer = CreateTransactionProducer(groupId, &PyLocalTransactionCheckerCallback, localTransactionCheckerCallback);
-    g_TransactionCallBackMap[producer] = localTransactionCheckerCallback;
+    CProducer *producer = CreateTransactionProducer(groupId, &PyLocalTransactionCheckerCallback, NULL);
+    g_TransactionCheckCallBackMap[producer] = localTransactionCheckerCallback;
     return producer;
 }
 
 CTransactionStatus PyLocalTransactionCheckerCallback(CProducer *producer, CMessageExt *msg, void *data) {
-    PyThreadStateLock PyThreadLock;  // ensure hold GIL, before call python callback
-    PyObject * checkerCallback = (PyObject *) data;
-    CTransactionStatus status = boost::python::call<CTransactionStatus>(checkerCallback, (void *) msg);
-    return status;
+    PyThreadStateLock pyThreadLock;  // ensure hold GIL, before call python callback
+    PyMessageExt message = {.pMessageExt = msg};
+    map<CProducer *, PyObject *>::iterator iter;
+    iter = g_TransactionCheckCallBackMap.find(producer);
+    if (iter != g_TransactionCheckCallBackMap.end()) {
+        PyObject *pCallback = iter->second;
+        CTransactionStatus status = boost::python::call<CTransactionStatus>(pCallback, message);
+        return status;
+    }
+    return CTransactionStatus::E_UNKNOWN_TRANSACTION;
 }
 
 int PyDestroyProducer(void *producer) {
