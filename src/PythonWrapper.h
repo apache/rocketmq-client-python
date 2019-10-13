@@ -111,6 +111,7 @@ CTransactionStatus PyLocalTransactionExecuteCallback(CProducer *producer, CMessa
 void *PyCreateTransactionProducer(const char *groupId, PyObject *localTransactionCheckerCallback);
 
 int PyDestroyProducer(void *producer);
+int PyDestroyTransactionProducer(void *producer);
 int PyStartProducer(void *producer);
 int PyShutdownProducer(void *producer);
 int PySetProducerNameServerAddress(void *producer, const char *namesrv);

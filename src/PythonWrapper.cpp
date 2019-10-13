@@ -331,6 +331,15 @@ int PyDestroyPushConsumer(void *consumer) {
     }
     return DestroyPushConsumer(consumerInner);
 }
+int PyDestroyTransactionProducer(void *producer) {
+    CProducer *producerInner = (CProducer *) producer;
+    map<CProducer *, PyObject *>::iterator iter;
+    iter = g_TransactionCheckCallBackMap.find(producerInner);
+    if (iter != g_TransactionCheckCallBackMap.end()) {
+        g_TransactionCheckCallBackMap.erase(iter);
+    }
+    return DestroyProducer(producerInner);
+}
 int PyStartPushConsumer(void *consumer) {
     return StartPushConsumer((CPushConsumer *) consumer);
 }
@@ -496,6 +505,7 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("CreateProducer", PyCreateProducer, return_value_policy<return_opaque_pointer>());
     def("CreateTransactionProducer", PyCreateTransactionProducer, return_value_policy<return_opaque_pointer>());
     def("DestroyProducer", PyDestroyProducer);
+    def("DestroyTransactionProducer", PyDestroyTransactionProducer);
     def("StartProducer", PyStartProducer);
     def("ShutdownProducer", PyShutdownProducer);
     def("SetProducerNameServerAddress", PySetProducerNameServerAddress);

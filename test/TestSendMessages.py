@@ -32,7 +32,7 @@ def init_producer():
     return producer
 
 def transaction_local_checker(msg):
-    print 'begin check for msg: ' + PyGetMessageId(msg)
+    print 'begin check for msg: ' + GetMessageId(msg)
     return TransactionStatus.E_COMMIT_TRANSACTION
 
 def init_transaction_producer():
