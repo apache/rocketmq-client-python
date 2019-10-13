@@ -18,7 +18,6 @@
 #include "CCommon.h"
 #include "CMessage.h"
 #include "CMessageExt.h"
-#include "CBatchMessage.h"
 #include "CSendResult.h"
 #include "CProducer.h"
 #include "CPushConsumer.h"
@@ -91,11 +90,6 @@ int PySetByteMessageBody(void *msg, const char *body, int len);
 int PySetMessageProperty(void *msg, const char *key, const char *value);
 int PySetMessageDelayTimeLevel(void *msg, int level);
 
-//batch message
-void *PyCreateBatchMessage();
-int PyAddMessage(void *batchMsg, void *msg);
-int PyDestroyBatchMessage(void *batchMsg);
-
 //messageExt
 const char *PyGetMessageTopic(PyMessageExt msgExt);
 const char *PyGetMessageTags(PyMessageExt msgExt);
@@ -132,7 +126,6 @@ void PySendSuccessCallback(CSendResult result, CMessage *msg, void *pyCallback);
 void PySendExceptionCallback(CMQException e, CMessage *msg, void *pyCallback);
 int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback, PyObject *sendExceptionCallback);
 
-PySendResult PySendBatchMessage(void *producer, void *msg);
 PySendResult PySendMessageOrderly(void *producer, void *msg, int autoRetryTimes, void *args, PyObject *queueSelector);
 PySendResult PySendMessageOrderlyByShardingKey(void *producer, void *msg, const char *shardingKey);
 PySendResult PySendMessageInTransaction(void *producer , void *msg, PyObject *localTransactionExecuteCallback , void *args);

@@ -17,7 +17,6 @@
 #include "CCommon.h"
 #include "CMessage.h"
 #include "CMessageExt.h"
-#include "CBatchMessage.h"
 #include "CSendResult.h"
 #include "CProducer.h"
 #include "CPushConsumer.h"
@@ -98,18 +97,6 @@ int PySetMessageDelayTimeLevel(void *msg, int level) {
     return SetDelayTimeLevel((CMessage *) msg, level);
 }
 
-//batch message
-void *PyCreateBatchMessage() {
-    return (void *) CreateBatchMessage();
-}
-
-int PyAddMessage(void *batchMsg, void *msg) {
-    return AddMessage((CBatchMessage *) batchMsg, (CMessage *) msg);
-}
-
-int PyDestroyBatchMessage(void *batchMsg) {
-    return DestroyBatchMessage((CBatchMessage *) batchMsg);
-}
 
 //messageExt
 const char *PyGetMessageTopic(PyMessageExt msgExt) {
@@ -248,17 +235,6 @@ int PySendMessageAsync(void *producer, void *msg, PyObject *sendSuccessCallback,
     pyCallback->exceptionCallback = sendExceptionCallback;
     return SendAsync((CProducer *) producer, (CMessage *) msg, &PySendSuccessCallback, &PySendExceptionCallback,
                      (void *) pyCallback);
-}
-
-PySendResult PySendBatchMessage(void *producer, void *batchMessage) {
-    PySendResult ret;
-    CSendResult result;
-    SendBatchMessage((CProducer *) producer, (CBatchMessage *) batchMessage, &result);
-    ret.sendStatus = result.sendStatus;
-    ret.offset = result.offset;
-    strncpy(ret.msgId, result.msgId, MAX_MESSAGE_ID_LENGTH - 1);
-    ret.msgId[MAX_MESSAGE_ID_LENGTH - 1] = 0;
-    return ret;
 }
 
 
@@ -488,11 +464,6 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
     def("SetMessageProperty", PySetMessageProperty);
     def("SetDelayTimeLevel", PySetMessageDelayTimeLevel);
 
-    //For batch message
-    def("CreateBatchMessage", PyCreateBatchMessage, return_value_policy<return_opaque_pointer>());
-    def("AddMessage", PyAddMessage);
-    def("DestroyBatchMessage", PyDestroyBatchMessage);
-
     //For MessageExt
     def("GetMessageTopic", PyGetMessageTopic);
     def("GetMessageTags", PyGetMessageTags);
@@ -522,7 +493,6 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
 
     def("SendMessageSync", PySendMessageSync);
     def("SendMessageAsync", PySendMessageAsync);
-    def("SendBatchMessage", PySendBatchMessage);
 
     def("SendMessageOneway", PySendMessageOneway);
     def("SendMessageOrderly", PySendMessageOrderly);
