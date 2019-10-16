@@ -1,8 +1,0 @@
-.idea/
-cmake-build-*/
-
-*.pyc
-*.so
-
-bin/
-.vscode/
