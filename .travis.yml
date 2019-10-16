@@ -38,21 +38,6 @@ matrix:
         - pip install --force-reinstall dist/*.whl
         # Build source distribution
         - if [[ "${TRAVIS_TAG:-}" != "" ]]; then sudo python setup.py sdist; fi
-    - os: osx
-      osx_image: xcode9.3
-      compiler: clang
-      script:
-        - brew upgrade python
-        - git clone --depth=1 --branch=rocketmq-python-0.4.1 https://github.com/messense/rocketmq-client-cpp.git /tmp/rocketmq-client-cpp
-        - while sleep 300; do echo "=====[ $SECONDS seconds, still building... ]====="; done &
-        - cd /tmp/rocketmq-client-cpp && bash build.sh >> build.log 2>&1 && cd -
-        - cp /tmp/rocketmq-client-cpp/bin/librocketmq.dylib rocketmq/
-        - python3 setup.py sdist bdist_wheel
-        - ls dist/
-        # Try to install binary wheel
-        - python3 -m pip install -Ur dev-requirements.txt
-        - python3 -m pip install --force-reinstall dist/*.whl
-        # - python3 -m pytest --cov=rocketmq -v tests  # Skip for now, tests hang on Travis
 
 before_script:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export JAVA_HOME=$(/usr/libexec/java_home); fi
@@ -69,7 +54,6 @@ before_script:
 
 after_failure:
   - cat ~/logs/rocketmq-cpp/*.log.*
-  - tail -n 2000 build.log
 
 after_success:
   - |
