@@ -1,31 +1,86 @@
-## RocketMQ Client Python
-[![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
-[![TravisCI](https://travis-ci.org/apache/rocketmq-client-python.svg)](https://travis-ci.org/apache/rocketmq-client-python)
-* RocketMQ Python client is developed on top of [rocketmq-client-cpp](https://github.com/apache/rocketmq-client-cpp), which has been proven robust and widely adopted within Alibaba Group by many business units for more than three years.
+# rocketmq-python
 
-----------
-## Quick Start
-* Step-by-step instruction are provided in [RocketMQ Client Python Introduction](https://github.com/apache/rocketmq-client-python/blob/master/doc/Introduction.md).
-* Consult [RocketMQ Quick Start](https://rocketmq.apache.org/docs/quick-start/) to setup rocketmq broker and nameserver.
+[![Build Status](https://travis-ci.com/messense/rocketmq-python.svg?branch=master)](https://travis-ci.com/messense/rocketmq-python)
+[![codecov](https://codecov.io/gh/messense/rocketmq-python/branch/master/graph/badge.svg)](https://codecov.io/gh/messense/rocketmq-python)
+[![PyPI](https://img.shields.io/pypi/v/rocketmq.svg)](https://pypi.org/project/rocketmq)
 
-----------
-## Apache RocketMQ Community
-* [RocketMQ Community Projects](https://github.com/apache/rocketmq-externals)
+RocketMQ Python client, based on [rocketmq-client-cpp](https://github.com/apache/rocketmq-client-cpp), supports Linux and macOS
 
-----------
-## Contact us
-* Mailing Lists: <https://rocketmq.apache.org/about/contact/>
-* Home: <https://rocketmq.apache.org>
-* Docs: <https://rocketmq.apache.org/docs/quick-start/>
-* Issues: <https://github.com/apache/rocketmq-client-python/issues>
-* Ask: <https://stackoverflow.com/questions/tagged/rocketmq>
-* Slack: <https://rocketmq-community.slack.com/>
- 
----------- 
-## How to Contribute
-  Contributions are warmly welcome! Be it trivial cleanup, major new feature or other suggestion. Read this [how to contribute](http://rocketmq.apache.org/docs/how-to-contribute/) guide for more details. 
-   
-   
-----------
+## Installation
+
+```bash
+pip install rocketmq
+```
+
+## Usage
+
+### Producer
+
+```python
+from rocketmq.client import Producer, Message
+
+producer = Producer('PID-XXX')
+producer.set_namesrv_domain('http://onsaddr-internet.aliyun.com/rocketmq/nsaddr4client-internet')
+# For ip and port name server address, use `set_namesrv_addr` method, for example:
+# producer.set_namesrv_addr('127.0.0.1:9887')
+producer.set_session_credentials('XXX', 'XXXX', 'ALIYUN') # No need to call this function if you don't use Aliyun.
+producer.start()
+
+msg = Message('YOUR-TOPIC')
+msg.set_keys('XXX')
+msg.set_tags('XXX')
+msg.set_body('XXXX')
+ret = producer.send_sync(msg)
+print(ret.status, ret.msg_id, ret.offset)
+producer.shutdown()
+```
+
+### PushConsumer
+
+```python
+import time
+
+from rocketmq.client import PushConsumer
+
+
+def callback(msg):
+    print(msg.id, msg.body)
+
+
+consumer = PushConsumer('CID_XXX')
+consumer.set_namesrv_domain('http://onsaddr-internet.aliyun.com/rocketmq/nsaddr4client-internet')
+# For ip and port name server address, use `set_namesrv_addr` method, for example:
+# consumer.set_namesrv_addr('127.0.0.1:9887')
+consumer.set_session_credentials('XXX', 'XXXX', 'ALIYUN') # No need to call this function if you don't use Aliyun.
+consumer.subscribe('YOUR-TOPIC', callback)
+consumer.start()
+
+while True:
+    time.sleep(3600)
+
+consumer.shutdown()
+
+```
+
+### PullConsumer
+
+```python
+from rocketmq.client import PullConsumer
+
+
+consumer = PullConsumer('CID_XXX')
+consumer.set_namesrv_domain('http://onsaddr-internet.aliyun.com/rocketmq/nsaddr4client-internet')
+# For ip and port name server address, use `set_namesrv_addr` method, for example:
+# consumer.set_namesrv_addr('127.0.0.1:9887')
+consumer.set_session_credentials('XXX', 'XXXX', 'ALIYUN') # No need to call this function if you don't use Aliyun.
+consumer.start()
+
+for msg in consumer.pull('YOUR-TOPIC'):
+    print(msg.id, msg.body)
+
+consumer.shutdown()
+```
+
 ## License
-  [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html) Copyright (C) Apache Software Foundation
+
+This work is released under the MIT license. A copy of the license is provided in the [LICENSE](./LICENSE) file.
