@@ -223,6 +223,7 @@ class Producer(object):
         def _on_success(csendres):
             try:
                 if success_callback:
+                    csendres = csendres.contents
                     sendres = SendResult(
                         SendStatus(csendres.sendStatus),
                         csendres.msgId.decode('utf-8'),

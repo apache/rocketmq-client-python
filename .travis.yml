@@ -9,8 +9,7 @@ matrix:
         - docker
       script:
         - docker pull messense/rocketmq-client-python-ci:latest
-        - cd ci && docker build -t rocketmq-manylinux1 --cache-from messense/rocketmq-client-python-ci:latest . && cd -
-        - docker run --rm -it -v `pwd`:/io -w /io rocketmq-manylinux1 /io/manylinux.sh
+        - docker run --rm -it -v `pwd`:/io -w /io messense/rocketmq-client-python-ci:latest /io/manylinux.sh
         - ls dist/
         - sudo rm -rf build *.egg-info
         - pip install -Ur dev-requirements.txt
@@ -26,8 +25,7 @@ matrix:
         - docker
       script:
         - docker pull messense/rocketmq-client-python-ci:latest
-        - cd ci && docker build -t rocketmq-manylinux1 --cache-from messense/rocketmq-client-python-ci:latest . && cd -
-        - docker run --rm -it -v `pwd`:/io -w /io rocketmq-manylinux1 /io/manylinux.sh
+        - docker run --rm -it -v `pwd`:/io -w /io messense/rocketmq-client-python-ci:latest /io/manylinux.sh
         - ls dist/
         - sudo rm -rf build *.egg-info
         - pip install -Ur dev-requirements.txt
