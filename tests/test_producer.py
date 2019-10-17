@@ -16,14 +16,16 @@ def test_producer_send_sync(producer):
 
 def test_producer_send_async(producer):
     stop_event = threading.Event()
+    errors = []
 
     def on_success(result):
         stop_event.set()
-        assert result.msg_id
+        if not result.msg_id:
+            errors.append(AssertionError('Producer send_async failed'))
 
     def on_exception(exc):
         stop_event.set()
-        raise exc
+        errors.append(exc)
 
     msg = Message('test')
     msg.set_keys('send_async')
@@ -39,6 +41,8 @@ def test_producer_send_async(producer):
             raise Exception('test timed-out')
         time.sleep(1)
         wait_count += 1
+    if errors:
+        raise errors[0]
 
 
 def test_producer_send_oneway(producer):
