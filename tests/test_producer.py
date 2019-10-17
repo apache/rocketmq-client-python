@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import time
+import threading
+
 from rocketmq.client import Message, SendStatus
 
 
@@ -12,14 +15,30 @@ def test_producer_send_sync(producer):
 
 
 def test_producer_send_async(producer):
-    def on_success(msg):
-        print(msg)
+    stop_event = threading.Event()
+
+    def on_success(result):
+        stop_event.set()
+        assert result.msg_id
+
+    def on_exception(exc):
+        stop_event.set()
+        raise exc
 
     msg = Message('test')
     msg.set_keys('send_async')
     msg.set_tags('XXX')
     msg.set_body('XXXX')
-    producer.send_async(msg, on_success, None)
+    producer.send_async(msg, on_success, on_exception)
+
+    max_wait = 10
+    wait_count = 0
+    while not stop_event.is_set():
+        if wait_count >= max_wait:
+            stop_event.set()
+            raise Exception('test timed-out')
+        time.sleep(1)
+        wait_count += 1
 
 
 def test_producer_send_oneway(producer):
