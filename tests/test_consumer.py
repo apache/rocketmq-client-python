@@ -41,14 +41,14 @@ def test_push_consumer(producer, push_consumer):
             assert msg.body.decode('utf-8') == 'XXXX'
             assert msg[MessageProperty.KEYS]
         except Exception as exc:
-            erros.append(exc)
+            errors.append(exc)
 
     push_consumer.subscribe('test', on_message)
     push_consumer.start()
     while not stop_event.is_set():
         time.sleep(2)
     if errors:
-        raise erros[0]
+        raise errors[0]
 
 
 def test_push_consumer_reconsume_later(producer, push_consumer):
@@ -74,4 +74,4 @@ def test_push_consumer_reconsume_later(producer, push_consumer):
     while not stop_event.is_set():
         time.sleep(2)
     if errors:
-        raise erros[0]
+        raise errors[0]
