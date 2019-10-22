@@ -220,6 +220,9 @@ dll.SendMessageOnewayOrderly.restype = _CStatus
 dll.SendBatchMessage.argtypes = [c_void_p, c_void_p, POINTER(_CSendResult)]
 dll.SendBatchMessage.restype = _CStatus
 
+dll.SendMessageOrderlyByShardingKey.argtypes = [c_void_p, c_void_p, c_char_p, POINTER(_CSendResult)]
+dll.SendMessageOrderlyByShardingKey.restype = _CStatus
+
 # Pull Consumer
 dll.CreatePullConsumer.argtypes = [c_char_p]
 dll.CreatePullConsumer.restype = c_void_p

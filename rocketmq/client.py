@@ -298,6 +298,15 @@ class Producer(object):
             cres.offset
         )
 
+    def send_orderly_with_sharding_key(self, msg, sharding_key):
+        cres = _CSendResult()
+        ffi_check(dll.SendMessageOrderlyByShardingKey(self._handle, msg, _to_bytes(sharding_key), ctypes.pointer(cres)))
+        return SendResult(
+            SendStatus(cres.sendStatus),
+            cres.msgId.decode('utf-8'),
+            cres.offset
+        )
+
     def set_group(self, group_name):
         ffi_check(dll.SetProducerGroupName(_to_bytes(group_name)))
 

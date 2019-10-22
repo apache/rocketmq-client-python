@@ -60,6 +60,12 @@ def test_producer_send_oneway_orderly(producer):
     msg.set_body('XXXX')
     producer.send_oneway_orderly(msg, 1)
 
+def test_producer_send_orderly_with_sharding_key(producer):
+    msg = Message('test')
+    msg.set_keys('sharding_message')
+    msg.set_tags('sharding')
+    msg.set_body('sharding message')
+    producer.send_orderly_with_sharding_key(msg, 'order1')
 
 def test_producer_send_orderly(producer):
     msg = Message('test')
