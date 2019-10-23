@@ -7,7 +7,8 @@ from collections import namedtuple
 
 from .ffi import (
     dll, _CSendResult, MSG_CALLBACK_FUNC, _CMessageQueue, _CPullStatus,
-    _CConsumeStatus, MessageModel, QUEUE_SELECTOR_CALLBACK,
+    _CConsumeStatus, MessageModel, QUEUE_SELECTOR_CALLBACK, TRANSACTION_CHECK_CALLBACK,
+    LOCAL_TRANSACTION_EXECUTE_CALLBACK
 )
 from .exceptions import (
     ffi_check, PushConsumerStartFailed, ProducerSendAsyncFailed,
@@ -15,8 +16,7 @@ from .exceptions import (
 )
 from .consts import MessageProperty
 
-
-__all__ = ['SendStatus', 'Message', 'RecvMessage', 'Producer', 'PushConsumer', 'PullConsumer']
+__all__ = ['SendStatus', 'Message', 'RecvMessage', 'Producer', 'PushConsumer', 'PullConsumer', 'TransactionMQProducer']
 
 PY2 = sys.version_info[0] == 2
 if PY2:
@@ -181,7 +181,8 @@ class Producer(object):
 
     def __del__(self):
         if self._handle is not None:
-            ffi_check(dll.DestroyProducer(self._handle))
+            print 'hello'
+        #     ffi_check(dll.DestroyProducer(self._handle))
 
     def __enter__(self):
         self.start()
@@ -340,6 +341,71 @@ class Producer(object):
         ffi_check(dll.ShutdownProducer(self._handle))
 
 
+class TransactionMQProducer(Producer):
+    def __init__(self, group_id, checker_callback, user_args=None, timeout=None, compress_level=None,
+                 max_message_size=None):
+        self._callback_refs = []
+
+        def _on_check(producer, cmsg, user_data):
+            message = RecvMessage(cmsg)
+            return checker_callback(message)
+
+        transaction_checker_callback = TRANSACTION_CHECK_CALLBACK(_on_check)
+        self._callback_refs.append(transaction_checker_callback)
+
+        self._handle = dll.CreateTransactionProducer(group_id, transaction_checker_callback, user_args)
+        if self._handle is None:
+            raise NullPointerException('Create TransactionProducer returned null pointer')
+        if timeout is not None:
+            self.set_timeout(timeout)
+        if compress_level is not None:
+            self.set_compress_level(compress_level)
+        if max_message_size is not None:
+            self.set_max_message_size(max_message_size)
+
+    def __del__(self):
+        if self._handle is not None:
+            print 'exit'
+            # ffi_check(dll.DestroyProducer(self._handle))
+
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, type, value, traceback):
+        self.shutdown()
+
+    def start(self):
+        ffi_check(dll.StartProducer(self._handle))
+
+    def send_message_in_transaction(self, message, local_execute, user_args=None):
+        print 'enter'
+        result = _CSendResult()
+
+        def _on_local_execute(cmsg, usr_args):
+            message = RecvMessage(cmsg)
+            return local_execute(message, usr_args)
+
+        local_execute_callback = LOCAL_TRANSACTION_EXECUTE_CALLBACK(_on_local_execute)
+        self._callback_refs.append(local_execute_callback)
+
+        try:
+            ffi_check(
+                dll.SendMessageTransaction(self._handle,
+                                           message,
+                                           local_execute_callback,
+                                           user_args,
+                                           ctypes.pointer(result)))
+        finally:
+            print 'ok'
+            self._callback_refs.remove(local_execute_callback)
+
+        return SendResult(
+            SendStatus(result.sendStatus),
+            result.msgId.decode('utf-8'),
+            result.offset
+        )
+
+
 class PushConsumer(object):
     def __init__(self, group_id, orderly=False, message_model=MessageModel.CLUSTERING):
         self._handle = dll.CreatePushConsumer(_to_bytes(group_id))
@@ -430,6 +496,7 @@ class PushConsumer(object):
 
 class PullConsumer(object):
     offset_table = {}
+
     def __init__(self, group_id):
         self._handle = dll.CreatePullConsumer(_to_bytes(group_id))
         if self._handle is None:

@@ -117,6 +117,11 @@ class _CConsumeStatus(CtypesEnum):
     RECONSUME_LATER = 1
 
 
+class TransactionStatus(CtypesEnum):
+    E_COMMIT_TRANSACTION = 0
+    E_ROLLBACK_TRANSACTION = 1
+    E_UNKNOWN_TRANSACTION = 2
+
 # Message
 dll.CreateMessage.argtypes = [c_char_p]
 dll.CreateMessage.restype = c_void_p
@@ -176,6 +181,8 @@ dll.DestroyBatchMessage.restype = _CStatus
 QUEUE_SELECTOR_CALLBACK = ctypes.CFUNCTYPE(c_int, c_int, c_void_p, c_void_p)
 SEND_SUCCESS_CALLBACK = ctypes.CFUNCTYPE(None, POINTER(_CSendResult))
 SEND_EXCEPTION_CALLBACK = ctypes.CFUNCTYPE(None, _CMQException)
+TRANSACTION_CHECK_CALLBACK = ctypes.CFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p)
+LOCAL_TRANSACTION_EXECUTE_CALLBACK = ctypes.CFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p)
 
 dll.CreateProducer.argtypes = [c_char_p]
 dll.CreateProducer.restype = c_void_p
@@ -222,6 +229,15 @@ dll.SendBatchMessage.restype = _CStatus
 
 dll.SendMessageOrderlyByShardingKey.argtypes = [c_void_p, c_void_p, c_char_p, POINTER(_CSendResult)]
 dll.SendMessageOrderlyByShardingKey.restype = _CStatus
+
+dll.SendMessageOrderlyByShardingKey.argtypes = [c_void_p, c_void_p, c_char_p, POINTER(_CSendResult)]
+dll.SendMessageOrderlyByShardingKey.restype = _CStatus
+
+dll.CreateTransactionProducer.argtypes = [c_char_p, TRANSACTION_CHECK_CALLBACK, c_void_p]
+dll.CreateTransactionProducer.restype = c_void_p
+
+dll.SendMessageTransaction.argtypes = [c_void_p, c_void_p, LOCAL_TRANSACTION_EXECUTE_CALLBACK, c_void_p, POINTER(_CSendResult)]
+dll.SendMessageTransaction.restype = c_void_p
 
 # Pull Consumer
 dll.CreatePullConsumer.argtypes = [c_char_p]
