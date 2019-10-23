@@ -100,6 +100,7 @@ const char *PyGetMessageId(PyMessageExt msgExt);
 
 //producer
 void *PyCreateProducer(const char *groupId);
+void *PyCreateOrderProducer(const char *groupId);
 CTransactionStatus PyLocalTransactionCheckerCallback(CProducer *producer, CMessageExt *msg, void *data);
 CTransactionStatus PyLocalTransactionExecuteCallback(CProducer *producer, CMessage *msg, void *data);
 void *PyCreateTransactionProducer(const char *groupId, PyObject *localTransactionCheckerCallback);
