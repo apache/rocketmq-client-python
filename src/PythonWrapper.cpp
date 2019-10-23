@@ -124,6 +124,11 @@ void *PyCreateProducer(const char *groupId) {
     return (void *) CreateProducer(groupId);
 }
 
+void *PyCreateOrderProducer(const char *groupId) {
+    PyEval_InitThreads();  // ensure create GIL, for call Python callback from C.
+    return (void *) CreateOrderlyProducer(groupId);
+}
+
 void *PyCreateTransactionProducer(const char *groupId, PyObject *localTransactionCheckerCallback) {
     PyEval_InitThreads();
     CProducer *producer = CreateTransactionProducer(groupId, &PyLocalTransactionCheckerCallback, NULL);
@@ -474,6 +479,7 @@ BOOST_PYTHON_MODULE (librocketmqclientpython) {
 
     //For producer
     def("CreateProducer", PyCreateProducer, return_value_policy<return_opaque_pointer>());
+    def("CreateOrderProducer", PyCreateOrderProducer, return_value_policy<return_opaque_pointer>());
     def("CreateTransactionProducer", PyCreateTransactionProducer, return_value_policy<return_opaque_pointer>());
     def("DestroyProducer", PyDestroyProducer);
     def("DestroyTransactionProducer", PyDestroyTransactionProducer);
