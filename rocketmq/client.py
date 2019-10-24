@@ -112,7 +112,7 @@ class RecvMessage(object):
 
     @property
     def reconsume_times(self):
-        return dll.GetMessageReconsumeTimes(self._handle)
+        return dll.GetMessageReconsumeTimes(self._hanle)
 
     @property
     def store_size(self):
@@ -167,8 +167,11 @@ def hashing_queue_selector(mq_size, msg, arg):
 
 
 class Producer(object):
-    def __init__(self, group_id, timeout=None, compress_level=None, max_message_size=None):
-        self._handle = dll.CreateProducer(_to_bytes(group_id))
+    def __init__(self, group_id, orderly=False, timeout=None, compress_level=None, max_message_size=None):
+        if orderly:
+            self._handle = dll.CreateOrderlyProducer(_to_bytes(group_id))
+        else:
+            self._handle = dll.CreateProducer(_to_bytes(group_id))
         if self._handle is None:
             raise NullPointerException('CreateProducer returned null pointer')
         if timeout is not None:
@@ -181,8 +184,7 @@ class Producer(object):
 
     def __del__(self):
         if self._handle is not None:
-            print 'hello'
-        #     ffi_check(dll.DestroyProducer(self._handle))
+            ffi_check(dll.DestroyProducer(self._handle))
 
     def __enter__(self):
         self.start()
@@ -344,11 +346,10 @@ class Producer(object):
 class TransactionMQProducer(Producer):
     def __init__(self, group_id, checker_callback, user_args=None, timeout=None, compress_level=None,
                  max_message_size=None):
-        self._callback_refs = []
-
-        def _on_check(producer, cmsg, user_data):
-            message = RecvMessage(cmsg)
-            return checker_callback(message)
+	self._callback_refs = []
+        def _on_check(producer, cmsg, user_args):
+            py_message = RecvMessage(cmsg)
+            return checker_callback(py_message)
 
         transaction_checker_callback = TRANSACTION_CHECK_CALLBACK(_on_check)
         self._callback_refs.append(transaction_checker_callback)
@@ -362,11 +363,11 @@ class TransactionMQProducer(Producer):
             self.set_compress_level(compress_level)
         if max_message_size is not None:
             self.set_max_message_size(max_message_size)
+    
 
     def __del__(self):
         if self._handle is not None:
-            print 'exit'
-            # ffi_check(dll.DestroyProducer(self._handle))
+            ffi_check(dll.DestroyProducer(self._handle))
 
     def __enter__(self):
         self.start()
@@ -378,16 +379,15 @@ class TransactionMQProducer(Producer):
         ffi_check(dll.StartProducer(self._handle))
 
     def send_message_in_transaction(self, message, local_execute, user_args=None):
-        print 'enter'
-        result = _CSendResult()
 
-        def _on_local_execute(cmsg, usr_args):
+        def _on_local_execute(producer, cmsg, usr_args):
             message = RecvMessage(cmsg)
             return local_execute(message, usr_args)
 
         local_execute_callback = LOCAL_TRANSACTION_EXECUTE_CALLBACK(_on_local_execute)
         self._callback_refs.append(local_execute_callback)
-
+        
+        result = _CSendResult()
         try:
             ffi_check(
                 dll.SendMessageTransaction(self._handle,
@@ -396,7 +396,6 @@ class TransactionMQProducer(Producer):
                                            user_args,
                                            ctypes.pointer(result)))
         finally:
-            print 'ok'
             self._callback_refs.remove(local_execute_callback)
 
         return SendResult(

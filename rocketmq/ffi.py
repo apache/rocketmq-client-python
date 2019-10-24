@@ -49,7 +49,7 @@ class _CStatus(CtypesEnum):
     PULLCONSUMER_START_FAILED = 30
     PULLCONSUMER_FETCH_MQ_FAILED = 31
     PULLCONSUMER_FETCH_MESSAGE_FAILED = 32
-
+    NOT_SUPPORT_NOW = -1
 
 class _CLogLevel(CtypesEnum):
     FATAL = 1
@@ -186,6 +186,8 @@ LOCAL_TRANSACTION_EXECUTE_CALLBACK = ctypes.CFUNCTYPE(c_int, c_void_p, c_void_p,
 
 dll.CreateProducer.argtypes = [c_char_p]
 dll.CreateProducer.restype = c_void_p
+dll.CreateOrderlyProducer.argtypes = [c_char_p]
+dll.CreateOrderlyProducer.restype = c_void_p
 dll.DestroyProducer.argtypes = [c_void_p]
 dll.DestroyProducer.restype = _CStatus
 dll.StartProducer.argtypes = [c_void_p]
@@ -236,8 +238,9 @@ dll.SendMessageOrderlyByShardingKey.restype = _CStatus
 dll.CreateTransactionProducer.argtypes = [c_char_p, TRANSACTION_CHECK_CALLBACK, c_void_p]
 dll.CreateTransactionProducer.restype = c_void_p
 
-dll.SendMessageTransaction.argtypes = [c_void_p, c_void_p, LOCAL_TRANSACTION_EXECUTE_CALLBACK, c_void_p, POINTER(_CSendResult)]
-dll.SendMessageTransaction.restype = c_void_p
+dll.SendMessageTransaction.argtypes = [c_void_p, c_void_p, LOCAL_TRANSACTION_EXECUTE_CALLBACK, c_void_p,
+                                       POINTER(_CSendResult)]
+dll.SendMessageTransaction.restype = c_int
 
 # Pull Consumer
 dll.CreatePullConsumer.argtypes = [c_char_p]

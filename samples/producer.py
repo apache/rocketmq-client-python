@@ -15,23 +15,13 @@
 # * limitations under the License.
 # */
 from rocketmq.client import Producer, Message, TransactionMQProducer
-from rocketmq.consts import MessageProperty
+from rocketmq.ffi import TransactionStatus
 
 import time
 
 topic = 'TopicTest'
 gid = 'test'
 name_srv = '47.107.167.190:9876'
-
-
-def init_producer():
-    producer = Producer(gid)
-    producer.set_namesrv_addr(name_srv)
-    producer.start()
-    return producer
-
-
-producer = init_producer()
 
 
 def create_message():
@@ -43,6 +33,9 @@ def create_message():
 
 
 def send_message_sync(count):
+    producer = Producer(gid)
+    producer.set_namesrv_addr(name_srv)
+    producer.start()
     for n in range(count):
         msg = create_message()
         ret = producer.send_sync(msg)
@@ -52,31 +45,35 @@ def send_message_sync(count):
 
 
 def send_orderly_with_sharding_key(count):
+    producer = Producer(gid, True)
+    producer.set_namesrv_addr(name_srv)
+    producer.start()
     for n in range(count):
         msg = create_message()
         ret = producer.send_orderly_with_sharding_key(msg, 'orderId')
-        print 'send message status: ' + str(ret.status) + ' msgId: ' + ret.msg_id + ' offset: ' + str(ret.offset)
+        print 'send message status: ' + str(ret.status) + ' msgId: ' + ret.msg_id 
     print 'send sync message done'
     producer.shutdown()
 
 
 def check_callback(msg):
-    print 'check'
-    # print msg.body.decode('utf-8')
+    print 'check: ' + msg.id.decode('utf-8')
+    return TransactionStatus.E_COMMIT_TRANSACTION
 
 
 def local_execute(msg, user_args):
-    print 'local'
-    print msg[MessageProperty.TAGS]
-    # print msg.body.decode('utf-8')
+    print 'local   ' + msg.id.decode('utf-8')
+    return TransactionStatus.E_UNKNOWN_TRANSACTION 
 
 
 def send_transaction_message(count):
-    transactionMQProducer = TransactionMQProducer(gid, check_callback);
+    transactionMQProducer = TransactionMQProducer(gid, check_callback)
+    transactionMQProducer.set_namesrv_addr(name_srv)
+    transactionMQProducer.start()
     for n in range(count):
         msg = create_message()
-        ret = transactionMQProducer.send_message_in_transaction(msg, local_execute, 1)
-        print 'send message status: ' + str(ret.status) + ' msgId: ' + ret.msg_id + ' offset: ' + str(ret.offset)
+        ret = transactionMQProducer.send_message_in_transaction(msg, local_execute, None)
+        print 'send message status: ' + str(ret.status) + ' msgId: ' + ret.msg_id 
     print 'send sync message done'
 
     while True:
@@ -85,4 +82,5 @@ def send_transaction_message(count):
 
 
 if __name__ == '__main__':
-    send_message_sync(10)
+    send_transaction_message(10)
+
