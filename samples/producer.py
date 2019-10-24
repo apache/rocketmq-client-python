@@ -74,7 +74,7 @@ def send_transaction_message(count):
         msg = create_message()
         ret = transactionMQProducer.send_message_in_transaction(msg, local_execute, None)
         print 'send message status: ' + str(ret.status) + ' msgId: ' + ret.msg_id 
-    print 'send sync message done'
+    print 'send transaction message done'
 
     while True:
         time.sleep(3600)
