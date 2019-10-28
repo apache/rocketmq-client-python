@@ -6,7 +6,7 @@ from enum import IntEnum
 from collections import namedtuple
 
 from .ffi import (
-    dll, _CSendResult, MSG_CALLBACK_FUNC, _CMessageQueue, _CPullStatus,
+    dll, _CSendResult, MSG_CALLBACK_FUNC, _CMessageQueue,
     _CConsumeStatus, MessageModel, QUEUE_SELECTOR_CALLBACK, TRANSACTION_CHECK_CALLBACK,
     LOCAL_TRANSACTION_EXECUTE_CALLBACK
 )
@@ -16,7 +16,7 @@ from .exceptions import (
 )
 from .consts import MessageProperty
 
-__all__ = ['SendStatus', 'Message', 'RecvMessage', 'Producer', 'PushConsumer', 'PullConsumer', 'TransactionMQProducer',
+__all__ = ['SendStatus', 'Message', 'RecvMessage', 'Producer', 'PushConsumer', 'TransactionMQProducer',
            'TransactionStatus']
 
 PY2 = sys.version_info[0] == 2
@@ -498,97 +498,3 @@ class PushConsumer(object):
 
     def set_instance_name(self, name):
         ffi_check(dll.SetPushConsumerInstanceName(self._handle, _to_bytes(name)))
-
-
-class PullConsumer(object):
-    offset_table = {}
-
-    def __init__(self, group_id):
-        self._handle = dll.CreatePullConsumer(_to_bytes(group_id))
-        if self._handle is None:
-            raise NullPointerException('CreatePullConsumer returned null pointer')
-
-    def __del__(self):
-        if self._handle is not None:
-            ffi_check(dll.DestroyPullConsumer(self._handle))
-
-    def __enter__(self):
-        self.start()
-
-    def __exit__(self, type, value, traceback):
-        self.shutdown()
-
-    def start(self):
-        ffi_check(dll.StartPullConsumer(self._handle))
-
-    def shutdown(self):
-        ffi_check(dll.ShutdownPullConsumer(self._handle))
-
-    def set_group(self, group_id):
-        ffi_check(dll.SetPullConsumerGroupID(self._handle, _to_bytes(group_id)))
-
-    def set_namesrv_addr(self, addr):
-        ffi_check(dll.SetPullConsumerNameServerAddress(self._handle, _to_bytes(addr)))
-
-    def set_namesrv_domain(self, domain):
-        ffi_check(dll.SetPullConsumerNameServerDomain(self._handle, _to_bytes(domain)))
-
-    def set_session_credentials(self, access_key, access_secret, channel):
-        ffi_check(dll.SetPullConsumerSessionCredentials(
-            self._handle,
-            _to_bytes(access_key),
-            _to_bytes(access_secret),
-            _to_bytes(channel)
-        ))
-
-    def _get_mq_key(self, mq):
-        key = '%s@%s' % (mq.topic, mq.queueId)
-        return key
-
-    def get_message_queue_offset(self, mq):
-        offset = self.offset_table.get(self._get_mq_key(mq), 0)
-        return offset
-
-    def set_message_queue_offset(self, mq, offset):
-        self.offset_table[self._get_mq_key(mq)] = offset
-
-    def pull(self, topic, expression='*', max_num=32):
-        message_queue = POINTER(_CMessageQueue)()
-        queue_size = c_int()
-        ffi_check(dll.FetchSubscriptionMessageQueues(
-            self._handle,
-            _to_bytes(topic),
-            ctypes.pointer(message_queue),
-            ctypes.pointer(queue_size)
-        ))
-        for i in range(int(queue_size.value)):
-            mq = message_queue[i]
-            tmp_offset = ctypes.c_longlong(self.get_message_queue_offset(mq))
-
-            has_new_msg = True
-            while has_new_msg:
-                pull_res = dll.Pull(
-                    self._handle,
-                    ctypes.pointer(mq),
-                    _to_bytes(expression),
-                    tmp_offset,
-                    max_num,
-                )
-
-                if pull_res.pullStatus != _CPullStatus.BROKER_TIMEOUT:
-                    tmp_offset = pull_res.nextBeginOffset
-                    self.set_message_queue_offset(mq, tmp_offset)
-
-                if pull_res.pullStatus == _CPullStatus.FOUND:
-                    for i in range(int(pull_res.size)):
-                        yield RecvMessage(pull_res.msgFoundList[i])
-                elif pull_res.pullStatus == _CPullStatus.NO_MATCHED_MSG:
-                    pass
-                elif pull_res.pullStatus == _CPullStatus.NO_NEW_MSG:
-                    has_new_msg = False
-                elif pull_res.pullStatus == _CPullStatus.OFFSET_ILLEGAL:
-                    pass
-                else:
-                    pass
-                dll.ReleasePullResult(pull_res)  # NOTE: No need to check ffi return code here
-        ffi_check(dll.ReleaseSubscriptionMessageQueue(message_queue))

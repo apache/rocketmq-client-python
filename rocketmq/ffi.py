@@ -45,10 +45,7 @@ class _CStatus(CtypesEnum):
     PRODUCER_SEND_ASYNC_FAILED = 14
     # push consumer
     PUSHCONSUMER_START_FAILED = 20
-    # pull consumer
-    PULLCONSUMER_START_FAILED = 30
-    PULLCONSUMER_FETCH_MQ_FAILED = 31
-    PULLCONSUMER_FETCH_MESSAGE_FAILED = 32
+
     NOT_SUPPORT_NOW = -1
 
 class _CLogLevel(CtypesEnum):
@@ -89,26 +86,6 @@ class _CMQException(Structure):
         ('file', c_char * 512),
         ('msg', c_char * 512),
         ('type', c_char * 512),
-    ]
-
-
-class _CPullStatus(CtypesEnum):
-    FOUND = 0
-    NO_NEW_MSG = 1
-    NO_MATCHED_MSG = 2
-    OFFSET_ILLEGAL = 3
-    BROKER_TIMEOUT = 4
-
-
-class _CPullResult(Structure):
-    _fields_ = [
-        ('pullStatus', c_int),
-        ('nextBeginOffset', c_longlong),
-        ('minOffset', c_longlong),
-        ('maxOffset', c_longlong),
-        ('msgFoundList', POINTER(c_void_p)),
-        ('size', c_int),
-        ('pData', c_void_p),
     ]
 
 
@@ -241,40 +218,6 @@ dll.CreateTransactionProducer.restype = c_void_p
 dll.SendMessageTransaction.argtypes = [c_void_p, c_void_p, LOCAL_TRANSACTION_EXECUTE_CALLBACK, c_void_p,
                                        POINTER(_CSendResult)]
 dll.SendMessageTransaction.restype = c_int
-
-# Pull Consumer
-dll.CreatePullConsumer.argtypes = [c_char_p]
-dll.CreatePullConsumer.restype = c_void_p
-dll.DestroyPullConsumer.argtypes = [c_void_p]
-dll.DestroyPullConsumer.restype = _CStatus
-dll.StartPullConsumer.argtypes = [c_void_p]
-dll.StartPullConsumer.restype = _CStatus
-dll.ShutdownPullConsumer.argtypes = [c_void_p]
-dll.ShutdownPullConsumer.restype = _CStatus
-dll.SetPullConsumerGroupID.argtypes = [c_void_p, c_char_p]
-dll.SetPullConsumerGroupID.restype = _CStatus
-dll.GetPullConsumerGroupID.argtypes = [c_void_p]
-dll.GetPullConsumerGroupID.restype = c_char_p
-dll.SetPullConsumerNameServerAddress.argtypes = [c_void_p, c_char_p]
-dll.SetPullConsumerNameServerAddress.restype = _CStatus
-dll.SetPullConsumerNameServerDomain.argtypes = [c_void_p, c_char_p]
-dll.SetPullConsumerNameServerDomain.restype = _CStatus
-dll.SetPullConsumerSessionCredentials.argtypes = [c_void_p, c_char_p, c_char_p, c_char_p]
-dll.SetPullConsumerSessionCredentials.restype = _CStatus
-dll.SetPullConsumerLogPath.argtypes = [c_void_p, c_char_p]
-dll.SetPullConsumerLogPath.restype = _CStatus
-dll.SetPullConsumerLogFileNumAndSize.argtypes = [c_void_p, c_int, c_long]
-dll.SetPullConsumerLogFileNumAndSize.restype = _CStatus
-dll.SetPullConsumerLogLevel.argtypes = [c_void_p, _CLogLevel]
-dll.SetPullConsumerLogLevel.restype = _CStatus
-dll.FetchSubscriptionMessageQueues.argtypes = [c_void_p, c_char_p, POINTER(POINTER(_CMessageQueue)), POINTER(c_int)]
-dll.FetchSubscriptionMessageQueues.restype = _CStatus
-dll.ReleaseSubscriptionMessageQueue.argtypes = [POINTER(_CMessageQueue)]
-dll.ReleaseSubscriptionMessageQueue.restype = _CStatus
-dll.Pull.argtypes = [c_void_p, POINTER(_CMessageQueue), c_char_p, c_longlong, c_int]
-dll.Pull.restype = _CPullResult
-dll.ReleasePullResult.argtypes = [_CPullResult]
-dll.ReleasePullResult.restype = _CStatus
 
 # Push Consumer
 MSG_CALLBACK_FUNC = ctypes.CFUNCTYPE(c_int, c_void_p, c_void_p)

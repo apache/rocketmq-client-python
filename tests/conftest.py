@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
-from rocketmq.client import Producer, PushConsumer, PullConsumer
+from rocketmq.client import Producer, PushConsumer
 
 
 # HACK: It's buggy, don't call it in test case for now
@@ -23,11 +23,3 @@ def push_consumer():
     yield consumer
     consumer.shutdown()
 
-
-@pytest.fixture(scope='function')
-def pull_consumer():
-    consumer = PullConsumer('testGroup')
-    consumer.set_namesrv_addr('127.0.0.1:9876')
-    consumer.start()
-    yield consumer
-    consumer.shutdown()

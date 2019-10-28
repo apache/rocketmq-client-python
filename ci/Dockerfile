@@ -12,7 +12,7 @@ RUN curl -sqL https://zlib.net/zlib-1.2.11.tar.gz | tar -xz -C /tmp && \
   rm -rf /tmp/zlib-1.2.11
 
 # Build rocketmq-client-cpp
-RUN git clone --depth=1 --branch=1.2.3 https://github.com/apache/rocketmq-client-cpp.git /tmp/rocketmq-client-cpp && \
+RUN git clone --depth=1 --branch=1.2.4 https://github.com/apache/rocketmq-client-cpp.git /tmp/rocketmq-client-cpp && \
   mkdir -p /tmp/rocketmq-client-cpp/tmp_down_dir && \
   curl -sqL -o /tmp/rocketmq-client-cpp/tmp_down_dir/libevent-release-2.1.8-stable.zip https://github.com/libevent/libevent/archive/release-2.1.8-stable.zip  && \
   curl -sqL -o /tmp/rocketmq-client-cpp/tmp_down_dir/jsoncpp-0.10.7.zip https://github.com/open-source-parsers/jsoncpp/archive/0.10.7.zip && \
