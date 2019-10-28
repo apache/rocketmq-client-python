@@ -117,7 +117,7 @@ class _CConsumeStatus(CtypesEnum):
     RECONSUME_LATER = 1
 
 
-class TransactionStatus(CtypesEnum):
+class _CTransactionStatus(CtypesEnum):
     E_COMMIT_TRANSACTION = 0
     E_ROLLBACK_TRANSACTION = 1
     E_UNKNOWN_TRANSACTION = 2

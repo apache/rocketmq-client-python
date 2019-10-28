@@ -14,8 +14,7 @@
 # * See the License for the specific language governing permissions and
 # * limitations under the License.
 # */
-from rocketmq.client import Producer, Message, TransactionMQProducer
-from rocketmq.ffi import TransactionStatus
+from rocketmq.client import Producer, Message, TransactionMQProducer, TransactionStatus
 
 import time
 
@@ -58,12 +57,12 @@ def send_orderly_with_sharding_key(count):
 
 def check_callback(msg):
     print 'check: ' + msg.id.decode('utf-8')
-    return TransactionStatus.E_COMMIT_TRANSACTION
+    return TransactionStatus.COMMIT
 
 
 def local_execute(msg, user_args):
     print 'local   ' + msg.id.decode('utf-8')
-    return TransactionStatus.E_UNKNOWN_TRANSACTION 
+    return TransactionStatus.UNKNOWN
 
 
 def send_transaction_message(count):

@@ -16,7 +16,8 @@ from .exceptions import (
 )
 from .consts import MessageProperty
 
-__all__ = ['SendStatus', 'Message', 'RecvMessage', 'Producer', 'PushConsumer', 'PullConsumer', 'TransactionMQProducer']
+__all__ = ['SendStatus', 'Message', 'RecvMessage', 'Producer', 'PushConsumer', 'PullConsumer', 'TransactionMQProducer',
+           'TransactionStatus']
 
 PY2 = sys.version_info[0] == 2
 if PY2:
@@ -34,6 +35,12 @@ class SendStatus(IntEnum):
     FLUSH_DISK_TIMEOUT = 1
     FLUSH_SLAVE_TIMEOUT = 2
     SLAVE_NOT_AVAILABLE = 3
+
+
+class TransactionStatus(IntEnum):
+    COMMIT = 0
+    ROLLBACK = 1
+    UNKNOWN = 2
 
 
 def _to_bytes(s):
@@ -112,7 +119,7 @@ class RecvMessage(object):
 
     @property
     def reconsume_times(self):
-        return dll.GetMessageReconsumeTimes(self._hanle)
+        return dll.GetMessageReconsumeTimes(self._handle)
 
     @property
     def store_size(self):
@@ -346,7 +353,8 @@ class Producer(object):
 class TransactionMQProducer(Producer):
     def __init__(self, group_id, checker_callback, user_args=None, timeout=None, compress_level=None,
                  max_message_size=None):
-	self._callback_refs = []
+        self._callback_refs = []
+
         def _on_check(producer, cmsg, user_args):
             py_message = RecvMessage(cmsg)
             return checker_callback(py_message)
@@ -363,7 +371,6 @@ class TransactionMQProducer(Producer):
             self.set_compress_level(compress_level)
         if max_message_size is not None:
             self.set_max_message_size(max_message_size)
-    
 
     def __del__(self):
         if self._handle is not None:
@@ -386,7 +393,7 @@ class TransactionMQProducer(Producer):
 
         local_execute_callback = LOCAL_TRANSACTION_EXECUTE_CALLBACK(_on_local_execute)
         self._callback_refs.append(local_execute_callback)
-        
+
         result = _CSendResult()
         try:
             ffi_check(
