@@ -63,5 +63,4 @@ consumer.shutdown()
 ```
 
 ## License
-
-This work is released under the MIT license. A copy of the license is provided in the [LICENSE](./LICENSE) file.
+[Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html) Copyright (C) Apache Software Foundation
