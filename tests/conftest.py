@@ -5,6 +5,7 @@ from rocketmq.client import Producer, PushConsumer
 
 # HACK: It's buggy, don't call it in test case for now
 del PushConsumer.__del__
+del Producer.__del__
 
 
 @pytest.fixture(scope='session')
