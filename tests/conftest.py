@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
-from rocketmq.client import Producer, PushConsumer
+from rocketmq.client import Producer, PushConsumer, TransactionMQProducer
 
 
 # HACK: It's buggy, don't call it in test case for now
@@ -24,3 +24,11 @@ def push_consumer():
     yield consumer
     consumer.shutdown()
 
+
+@pytest.fixture(scope='session')
+def transactionProducer():
+    prod = TransactionMQProducer('testGroup')
+    prod.set_namesrv_addr('127.0.0.1:9876')
+    prod.start()
+    yield prod
+    prod.shutdown()

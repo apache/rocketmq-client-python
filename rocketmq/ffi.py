@@ -6,7 +6,6 @@ from ctypes.util import find_library
 from ctypes import c_char, c_char_p, c_void_p, c_int, c_long, c_longlong, Structure, POINTER
 from enum import IntEnum
 
-
 _DYLIB_SUFFIX = '.so'
 if sys.platform.lower() == 'darwin':
     _DYLIB_SUFFIX = '.dylib'
@@ -28,6 +27,7 @@ dll = ctypes.cdll.LoadLibrary(_DYLIB_PATH)
 
 class CtypesEnum(IntEnum):
     """A ctypes-compatible IntEnum superclass."""
+
     @classmethod
     def from_param(cls, obj):
         return int(obj)
@@ -44,9 +44,10 @@ class _CStatus(CtypesEnum):
     PRODUCER_SEND_ORDERLY_FAILED = 13
     PRODUCER_SEND_ASYNC_FAILED = 14
     # push consumer
-    PUSHCONSUMER_START_FAILED = 20
+    PUSH_CONSUMER_START_FAILED = 20
 
     NOT_SUPPORT_NOW = -1
+
 
 class _CLogLevel(CtypesEnum):
     FATAL = 1
@@ -88,16 +89,6 @@ class _CMQException(Structure):
         ('type', c_char * 512),
     ]
 
-
-class _CConsumeStatus(CtypesEnum):
-    CONSUME_SUCCESS = 0
-    RECONSUME_LATER = 1
-
-
-class _CTransactionStatus(CtypesEnum):
-    E_COMMIT_TRANSACTION = 0
-    E_ROLLBACK_TRANSACTION = 1
-    E_UNKNOWN_TRANSACTION = 2
 
 # Message
 dll.CreateMessage.argtypes = [c_char_p]
@@ -154,7 +145,6 @@ dll.DestroyBatchMessage.argtypes = [c_void_p]
 dll.DestroyBatchMessage.restype = _CStatus
 
 # Producer
-
 QUEUE_SELECTOR_CALLBACK = ctypes.CFUNCTYPE(c_int, c_int, c_void_p, c_void_p)
 SEND_SUCCESS_CALLBACK = ctypes.CFUNCTYPE(None, POINTER(_CSendResult))
 SEND_EXCEPTION_CALLBACK = ctypes.CFUNCTYPE(None, _CMQException)

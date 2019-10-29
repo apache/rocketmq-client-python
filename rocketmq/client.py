@@ -6,8 +6,7 @@ from enum import IntEnum
 from collections import namedtuple
 
 from .ffi import (
-    dll, _CSendResult, MSG_CALLBACK_FUNC, _CMessageQueue,
-    _CConsumeStatus, MessageModel, QUEUE_SELECTOR_CALLBACK, TRANSACTION_CHECK_CALLBACK,
+    dll, _CSendResult, MSG_CALLBACK_FUNC, MessageModel, QUEUE_SELECTOR_CALLBACK, TRANSACTION_CHECK_CALLBACK,
     LOCAL_TRANSACTION_EXECUTE_CALLBACK
 )
 from .exceptions import (
@@ -17,7 +16,7 @@ from .exceptions import (
 from .consts import MessageProperty
 
 __all__ = ['SendStatus', 'Message', 'RecvMessage', 'Producer', 'PushConsumer', 'TransactionMQProducer',
-           'TransactionStatus']
+           'TransactionStatus', 'ConsumeStatus']
 
 PY2 = sys.version_info[0] == 2
 if PY2:
@@ -41,6 +40,11 @@ class TransactionStatus(IntEnum):
     COMMIT = 0
     ROLLBACK = 1
     UNKNOWN = 2
+
+
+class ConsumeStatus(IntEnum):
+    CONSUME_SUCCESS = 0
+    RECONSUME_LATER = 1
 
 
 def _to_bytes(s):
@@ -369,8 +373,8 @@ class TransactionMQProducer(Producer):
     def send_message_in_transaction(self, message, local_execute, user_args=None):
 
         def _on_local_execute(producer, cmsg, usr_args):
-            message = RecvMessage(cmsg)
-            return local_execute(message, usr_args)
+            py_message = RecvMessage(cmsg)
+            return local_execute(py_message, usr_args)
 
         local_execute_callback = LOCAL_TRANSACTION_EXECUTE_CALLBACK(_on_local_execute)
         self._callback_refs.append(local_execute_callback)
@@ -442,15 +446,15 @@ class PushConsumer(object):
         def _on_message(consumer, msg):
             exc = None
             try:
-                callback(RecvMessage(msg))
-            except Exception as e:
+                return callback(RecvMessage(msg))
+            except BaseException as e:
                 exc = e
-                return _CConsumeStatus.RECONSUME_LATER.value
+                return ConsumeStatus.RECONSUME_LATER
             finally:
                 if exc:
                     raise exc
 
-            return _CConsumeStatus.CONSUME_SUCCESS.value
+            return ConsumeStatus.CONSUME_SUCCESS
 
         ffi_check(dll.Subscribe(self._handle, _to_bytes(topic), _to_bytes(expression)))
         self._register_callback(_on_message)
