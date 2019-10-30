@@ -63,7 +63,7 @@ def check_callback(msg):
 
 
 def local_execute(msg, user_args):
-    print ('local   ' + msg.id.decode('utf-8'))
+    print ('local:   ' + msg.id.decode('utf-8'))
     return TransactionStatus.UNKNOWN
 
 

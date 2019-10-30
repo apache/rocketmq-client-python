@@ -110,7 +110,7 @@ def test_transaction_producer():
         return TransactionStatus.COMMIT
 
     producer = TransactionMQProducer('testGroup', on_check)
-    producer.set_namesrv_addr('47.107.167.190:9876')
+    producer.set_namesrv_addr('127.0.0.1:9876')
     producer.start()
     msg = Message('test')
     msg.set_keys('send_orderly')
