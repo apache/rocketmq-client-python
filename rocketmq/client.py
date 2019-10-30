@@ -74,7 +74,7 @@ class Message(object):
     def __init__(self, topic):
         self._handle = dll.CreateMessage(_to_bytes(topic))
 
-    def __del__(self):
+    def destroy(self):
         if self._handle is not None:
             ffi_check(dll.DestroyMessage(self._handle))
 
@@ -210,15 +210,15 @@ class Producer(object):
             self.set_max_message_size(max_message_size)
         self._callback_refs = []
 
-    def __del__(self):
-        if self._handle is not None:
-            ffi_check(dll.DestroyProducer(self._handle))
-
     def __enter__(self):
         self.start()
 
     def __exit__(self, type, value, traceback):
         self.shutdown()
+
+    def destroy(self):
+        if self._handle is not None:
+            ffi_check(dll.DestroyProducer(self._handle))
 
     def send_sync(self, msg):
         cres = _CSendResult()
@@ -374,15 +374,15 @@ class TransactionMQProducer(Producer):
         if max_message_size is not None:
             self.set_max_message_size(max_message_size)
 
-    def __del__(self):
-        if self._handle is not None:
-            ffi_check(dll.DestroyProducer(self._handle))
-
     def __enter__(self):
         self.start()
 
     def __exit__(self, type, value, traceback):
         self.shutdown()
+
+    def destroy(self):
+        if self._handle is not None:
+            ffi_check(dll.DestroyProducer(self._handle))
 
     def start(self):
         ffi_check(dll.StartProducer(self._handle))
@@ -423,15 +423,15 @@ class PushConsumer(object):
         self.set_message_model(message_model)
         self._callback_refs = []
 
-    def __del__(self):
-        if self._handle is not None:
-            ffi_check(dll.DestroyPushConsumer(self._handle))
-
     def __enter__(self):
         self.start()
 
     def __exit__(self, type, value, traceback):
         self.shutdown()
+
+    def destroy(self):
+        if self._handle is not None:
+            ffi_check(dll.DestroyPushConsumer(self._handle))
 
     def set_message_model(self, model):
         ffi_check(dll.SetPushConsumerMessageModel(self._handle, model))

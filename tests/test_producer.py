@@ -120,3 +120,4 @@ def test_transaction_producer():
     while not stop_event.is_set():
         time.sleep(2)
     producer.shutdown()
+
