@@ -17,11 +17,7 @@
 # specific language governing permissions and limitations
 # under the License.
 import pytest
-from rocketmq.client import Producer, PushConsumer, TransactionMQProducer
-
-# HACK: It's buggy, don't call it in test case for now
-del PushConsumer.__del__
-del Producer.__del__
+from rocketmq.client import Producer, PushConsumer
 
 
 @pytest.fixture(scope='session')
