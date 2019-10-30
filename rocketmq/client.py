@@ -364,7 +364,7 @@ class TransactionMQProducer(Producer):
         transaction_checker_callback = TRANSACTION_CHECK_CALLBACK(_on_check)
         self._callback_refs.append(transaction_checker_callback)
 
-        self._handle = dll.CreateTransactionProducer(group_id, transaction_checker_callback, user_args)
+        self._handle = dll.CreateTransactionProducer(_to_bytes(group_id), transaction_checker_callback, user_args)
         if self._handle is None:
             raise NullPointerException('Create TransactionProducer returned null pointer')
         if timeout is not None:
