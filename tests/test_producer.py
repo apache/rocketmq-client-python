@@ -109,7 +109,7 @@ def test_transaction_producer():
         assert msg.id.decode('utf-8') == msgId
         return TransactionStatus.COMMIT
 
-    producer = TransactionMQProducer('testGroup', on_check)
+    producer = TransactionMQProducer('transactionTestGroup', on_check)
     producer.set_namesrv_addr('127.0.0.1:9876')
     producer.start()
     msg = Message('test')
