@@ -19,7 +19,7 @@
 import time
 import threading
 
-from rocketmq.client import Message, SendStatus
+from rocketmq.client import Message, SendStatus, TransactionMQProducer, TransactionStatus
 
 
 def test_producer_send_sync(producer):
@@ -83,7 +83,8 @@ def test_producer_send_orderly_with_sharding_key(producer):
     msg.set_keys('sharding_message')
     msg.set_tags('sharding')
     msg.set_body('sharding message')
-    producer.send_orderly_with_sharding_key(msg, 'order1')
+    ret = producer.send_orderly_with_sharding_key(msg, 'order1')
+    assert ret.status == SendStatus.OK
 
 
 def test_producer_send_orderly(producer):
@@ -93,3 +94,29 @@ def test_producer_send_orderly(producer):
     msg.set_body('XXXX')
     ret = producer.send_orderly(msg, 1)
     assert ret.status == SendStatus.OK
+
+
+def test_transaction_producer():
+    stop_event = threading.Event()
+    msgId = None
+
+    def on_local_execute(msg, user_args):
+        msgId = msg.id.decode('utf-8')
+        return TransactionStatus.UNKNOWN
+
+    def on_check(msg):
+        stop_event.set()
+        assert msg.id.decode('utf-8') == msgId
+        return TransactionStatus.COMMIT
+
+    producer = TransactionMQProducer('testGroup', on_check)
+    producer.set_namesrv_addr('47.107.167.190:9876')
+    producer.start()
+    msg = Message('test')
+    msg.set_keys('send_orderly')
+    msg.set_tags('XXX')
+    msg.set_body('XXXX')
+    producer.send_message_in_transaction(msg, on_local_execute)
+    while not stop_event.is_set():
+        time.sleep(2)
+    producer.shutdown()
