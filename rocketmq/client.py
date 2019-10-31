@@ -358,12 +358,20 @@ class TransactionMQProducer(Producer):
         self._callback_refs = []
 
         def _on_check(producer, cmsg, user_args):
-            py_message = RecvMessage(cmsg)
-            check_result = checker_callback(py_message)
-            if check_result != TransactionStatus.UNKNOWN and check_result != TransactionStatus.COMMIT \
-                    and check_result != TransactionStatus.ROLLBACK:
-                raise ValueError('Check transaction status error, please use TransactionStatus as response')
-            return check_result
+            try:
+                py_message = RecvMessage(cmsg)
+                check_result = checker_callback(py_message)
+                if check_result != TransactionStatus.UNKNOWN and check_result != TransactionStatus.COMMIT \
+                        and check_result != TransactionStatus.ROLLBACK:
+                    raise ValueError('Check transaction status error, please use TransactionStatus as response')
+                return check_result
+            except BaseException as e:
+                exc = e
+                return TransactionStatus.UNKNOWN
+            finally:
+                if exc:
+                    raise exc
+            return ConsumeStatus.UNKNOWN
 
         transaction_checker_callback = TRANSACTION_CHECK_CALLBACK(_on_check)
         self._callback_refs.append(transaction_checker_callback)
@@ -394,12 +402,21 @@ class TransactionMQProducer(Producer):
     def send_message_in_transaction(self, message, local_execute, user_args=None):
 
         def _on_local_execute(producer, cmsg, usr_args):
-            py_message = RecvMessage(cmsg)
-            local_result = local_execute(py_message, usr_args)
-            if local_result != TransactionStatus.UNKNOWN and local_result != TransactionStatus.COMMIT \
-                    and local_result != TransactionStatus.ROLLBACK:
-                raise ValueError('Local transaction status error, please use TransactionStatus as response')
-            return local_result
+            try:
+                py_message = RecvMessage(cmsg)
+                local_result = local_execute(py_message, usr_args)
+                if local_result != TransactionStatus.UNKNOWN and local_result != TransactionStatus.COMMIT \
+                        and local_result != TransactionStatus.ROLLBACK:
+                    raise ValueError('Local transaction status error, please use TransactionStatus as response')
+                return local_result
+            except BaseException as e:
+                exc = e
+                return TransactionStatus.UNKNOWN
+            finally:
+                if exc:
+                    raise exc
+
+            return ConsumeStatus.UNKNOWN
 
         local_execute_callback = LOCAL_TRANSACTION_EXECUTE_CALLBACK(_on_local_execute)
         self._callback_refs.append(local_execute_callback)
