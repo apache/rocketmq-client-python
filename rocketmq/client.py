@@ -359,7 +359,11 @@ class TransactionMQProducer(Producer):
 
         def _on_check(producer, cmsg, user_args):
             py_message = RecvMessage(cmsg)
-            return checker_callback(py_message)
+            check_result = checker_callback(py_message)
+            if check_result != TransactionStatus.UNKNOWN and check_result != TransactionStatus.COMMIT \
+                    and check_result != TransactionStatus.ROLLBACK:
+                raise ValueError('Check transaction status error, please use TransactionStatus as response')
+            return check_result
 
         transaction_checker_callback = TRANSACTION_CHECK_CALLBACK(_on_check)
         self._callback_refs.append(transaction_checker_callback)
@@ -391,7 +395,11 @@ class TransactionMQProducer(Producer):
 
         def _on_local_execute(producer, cmsg, usr_args):
             py_message = RecvMessage(cmsg)
-            return local_execute(py_message, usr_args)
+            local_result = local_execute(py_message, usr_args)
+            if local_result != TransactionStatus.UNKNOWN and local_result != TransactionStatus.COMMIT \
+                    and local_result != TransactionStatus.ROLLBACK:
+                raise ValueError('Local transaction status error, please use TransactionStatus as response')
+            return local_result
 
         local_execute_callback = LOCAL_TRANSACTION_EXECUTE_CALLBACK(_on_local_execute)
         self._callback_refs.append(local_execute_callback)
@@ -463,7 +471,10 @@ class PushConsumer(object):
         def _on_message(consumer, msg):
             exc = None
             try:
-                return callback(RecvMessage(msg))
+                consume_result = callback(RecvMessage(msg))
+                if consume_result != ConsumeStatus.CONSUME_SUCCESS and consume_result != ConsumeStatus.RECONSUME_LATER:
+                    raise ValueError('Consume status error, please use ConsumeStatus as response')
+                return consume_result
             except BaseException as e:
                 exc = e
                 return ConsumeStatus.RECONSUME_LATER

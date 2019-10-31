@@ -43,6 +43,7 @@ def send_message_sync(count):
         print ('send message status: ' + str(ret.status) + ' msgId: ' + ret.msg_id + ' offset: ' + str(ret.offset))
     print ('send sync message done')
     producer.shutdown()
+    producer.destroy()
 
 
 def send_orderly_with_sharding_key(count):
@@ -55,6 +56,7 @@ def send_orderly_with_sharding_key(count):
         print ('send message status: ' + str(ret.status) + ' msgId: ' + ret.msg_id)
     print ('send sync message done')
     producer.shutdown()
+    producer.destroy()
 
 
 def check_callback(msg):
@@ -68,18 +70,19 @@ def local_execute(msg, user_args):
 
 
 def send_transaction_message(count):
-    transactionMQProducer = TransactionMQProducer(gid, check_callback)
-    transactionMQProducer.set_namesrv_addr(name_srv)
-    transactionMQProducer.start()
+    producer = TransactionMQProducer(gid, check_callback)
+    producer.set_namesrv_addr(name_srv)
+    producer.start()
     for n in range(count):
         msg = create_message()
-        ret = transactionMQProducer.send_message_in_transaction(msg, local_execute, None)
+        ret = producer.send_message_in_transaction(msg, local_execute, None)
         print ('send message status: ' + str(ret.status) + ' msgId: ' + ret.msg_id)
     print ('send transaction message done')
 
     while True:
         time.sleep(3600)
     producer.shutdown()
+    producer.destroy()
 
 
 if __name__ == '__main__':
