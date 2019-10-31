@@ -27,7 +27,6 @@ def producer():
     prod.start()
     yield prod
     prod.shutdown()
-    prod.destroy()
 
 
 @pytest.fixture(scope='function')
@@ -36,4 +35,3 @@ def push_consumer():
     consumer.set_namesrv_addr('127.0.0.1:9876')
     yield consumer
     consumer.shutdown()
-    consumer.destroy()
