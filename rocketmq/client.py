@@ -358,6 +358,7 @@ class TransactionMQProducer(Producer):
         self._callback_refs = []
 
         def _on_check(producer, cmsg, user_args):
+            exc = None
             try:
                 py_message = RecvMessage(cmsg)
                 check_result = checker_callback(py_message)
@@ -402,6 +403,7 @@ class TransactionMQProducer(Producer):
     def send_message_in_transaction(self, message, local_execute, user_args=None):
 
         def _on_local_execute(producer, cmsg, usr_args):
+            exc = None
             try:
                 py_message = RecvMessage(cmsg)
                 local_result = local_execute(py_message, usr_args)
@@ -415,7 +417,6 @@ class TransactionMQProducer(Producer):
             finally:
                 if exc:
                     raise exc
-
             return ConsumeStatus.UNKNOWN
 
         local_execute_callback = LOCAL_TRANSACTION_EXECUTE_CALLBACK(_on_local_execute)
