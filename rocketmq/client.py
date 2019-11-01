@@ -23,8 +23,8 @@ from enum import IntEnum
 from collections import namedtuple
 
 from .ffi import (
-    dll, _CSendResult, MSG_CALLBACK_FUNC, _CMessageQueue, _CPullStatus,
-    _CConsumeStatus, MessageModel, QUEUE_SELECTOR_CALLBACK,
+    dll, _CSendResult, MSG_CALLBACK_FUNC, MessageModel, QUEUE_SELECTOR_CALLBACK, TRANSACTION_CHECK_CALLBACK,
+    LOCAL_TRANSACTION_EXECUTE_CALLBACK
 )
 from .exceptions import (
     ffi_check, PushConsumerStartFailed, ProducerSendAsyncFailed,
@@ -32,8 +32,8 @@ from .exceptions import (
 )
 from .consts import MessageProperty
 
-
-__all__ = ['SendStatus', 'Message', 'RecvMessage', 'Producer', 'PushConsumer', 'PullConsumer']
+__all__ = ['SendStatus', 'Message', 'RecvMessage', 'Producer', 'PushConsumer', 'TransactionMQProducer',
+           'TransactionStatus', 'ConsumeStatus']
 
 PY2 = sys.version_info[0] == 2
 if PY2:
@@ -53,6 +53,17 @@ class SendStatus(IntEnum):
     SLAVE_NOT_AVAILABLE = 3
 
 
+class TransactionStatus(IntEnum):
+    COMMIT = 0
+    ROLLBACK = 1
+    UNKNOWN = 2
+
+
+class ConsumeStatus(IntEnum):
+    CONSUME_SUCCESS = 0
+    RECONSUME_LATER = 1
+
+
 def _to_bytes(s):
     if isinstance(s, text_type):
         return s.encode('utf-8')
@@ -63,7 +74,7 @@ class Message(object):
     def __init__(self, topic):
         self._handle = dll.CreateMessage(_to_bytes(topic))
 
-    def __del__(self):
+    def destroy(self):
         if self._handle is not None:
             ffi_check(dll.DestroyMessage(self._handle))
 
@@ -184,8 +195,11 @@ def hashing_queue_selector(mq_size, msg, arg):
 
 
 class Producer(object):
-    def __init__(self, group_id, timeout=None, compress_level=None, max_message_size=None):
-        self._handle = dll.CreateProducer(_to_bytes(group_id))
+    def __init__(self, group_id, orderly=False, timeout=None, compress_level=None, max_message_size=None):
+        if orderly:
+            self._handle = dll.CreateOrderlyProducer(_to_bytes(group_id))
+        else:
+            self._handle = dll.CreateProducer(_to_bytes(group_id))
         if self._handle is None:
             raise NullPointerException('CreateProducer returned null pointer')
         if timeout is not None:
@@ -196,34 +210,15 @@ class Producer(object):
             self.set_max_message_size(max_message_size)
         self._callback_refs = []
 
-    def __del__(self):
-        if self._handle is not None:
-            ffi_check(dll.DestroyProducer(self._handle))
-
     def __enter__(self):
         self.start()
 
     def __exit__(self, type, value, traceback):
         self.shutdown()
 
-    def send_batch(self, msgs):
-        assert len(msgs) > 0, 'Batch message length should be greater than 0'
-        batch_msg = dll.CreateBatchMessage()
-        try:
-            for msg in msgs:
-                assert isinstance(msg, Message), 'Batch message item should be a instance of `Message`'
-                ffi_check(dll.AddMessage(batch_msg, msg))
-
-            cres = _CSendResult()
-            ffi_check(dll.SendBatchMessage(self._handle, batch_msg, ctypes.pointer(cres)))
-            return SendResult(
-                SendStatus(cres.sendStatus),
-                cres.msgId.decode('utf-8'),
-                cres.offset
-            )
-        finally:
-            if batch_msg is not None:
-                ffi_check(dll.DestroyBatchMessage(batch_msg))
+    def destroy(self):
+        if self._handle is not None:
+            ffi_check(dll.DestroyProducer(self._handle))
 
     def send_sync(self, msg):
         cres = _CSendResult()
@@ -315,6 +310,15 @@ class Producer(object):
             cres.offset
         )
 
+    def send_orderly_with_sharding_key(self, msg, sharding_key):
+        cres = _CSendResult()
+        ffi_check(dll.SendMessageOrderlyByShardingKey(self._handle, msg, _to_bytes(sharding_key), ctypes.pointer(cres)))
+        return SendResult(
+            SendStatus(cres.sendStatus),
+            cres.msgId.decode('utf-8'),
+            cres.offset
+        )
+
     def set_group(self, group_name):
         ffi_check(dll.SetProducerGroupName(self._handle, _to_bytes(group_name)))
 
@@ -348,6 +352,94 @@ class Producer(object):
         ffi_check(dll.ShutdownProducer(self._handle))
 
 
+class TransactionMQProducer(Producer):
+    def __init__(self, group_id, checker_callback, user_args=None, timeout=None, compress_level=None,
+                 max_message_size=None):
+        self._callback_refs = []
+
+        def _on_check(producer, cmsg, user_args):
+            exc = None
+            try:
+                py_message = RecvMessage(cmsg)
+                check_result = checker_callback(py_message)
+                if check_result != TransactionStatus.UNKNOWN and check_result != TransactionStatus.COMMIT \
+                        and check_result != TransactionStatus.ROLLBACK:
+                    raise ValueError('Check transaction status error, please use TransactionStatus as response')
+                return check_result
+            except BaseException as e:
+                exc = e
+                return TransactionStatus.UNKNOWN
+            finally:
+                if exc:
+                    raise exc
+            return ConsumeStatus.UNKNOWN
+
+        transaction_checker_callback = TRANSACTION_CHECK_CALLBACK(_on_check)
+        self._callback_refs.append(transaction_checker_callback)
+
+        self._handle = dll.CreateTransactionProducer(_to_bytes(group_id), transaction_checker_callback, user_args)
+        if self._handle is None:
+            raise NullPointerException('Create TransactionProducer returned null pointer')
+        if timeout is not None:
+            self.set_timeout(timeout)
+        if compress_level is not None:
+            self.set_compress_level(compress_level)
+        if max_message_size is not None:
+            self.set_max_message_size(max_message_size)
+
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, type, value, traceback):
+        self.shutdown()
+
+    def destroy(self):
+        if self._handle is not None:
+            ffi_check(dll.DestroyProducer(self._handle))
+
+    def start(self):
+        ffi_check(dll.StartProducer(self._handle))
+
+    def send_message_in_transaction(self, message, local_execute, user_args=None):
+
+        def _on_local_execute(producer, cmsg, usr_args):
+            exc = None
+            try:
+                py_message = RecvMessage(cmsg)
+                local_result = local_execute(py_message, usr_args)
+                if local_result != TransactionStatus.UNKNOWN and local_result != TransactionStatus.COMMIT \
+                        and local_result != TransactionStatus.ROLLBACK:
+                    raise ValueError('Local transaction status error, please use TransactionStatus as response')
+                return local_result
+            except BaseException as e:
+                exc = e
+                return TransactionStatus.UNKNOWN
+            finally:
+                if exc:
+                    raise exc
+            return ConsumeStatus.UNKNOWN
+
+        local_execute_callback = LOCAL_TRANSACTION_EXECUTE_CALLBACK(_on_local_execute)
+        self._callback_refs.append(local_execute_callback)
+
+        result = _CSendResult()
+        try:
+            ffi_check(
+                dll.SendMessageTransaction(self._handle,
+                                           message,
+                                           local_execute_callback,
+                                           user_args,
+                                           ctypes.pointer(result)))
+        finally:
+            self._callback_refs.remove(local_execute_callback)
+
+        return SendResult(
+            SendStatus(result.sendStatus),
+            result.msgId.decode('utf-8'),
+            result.offset
+        )
+
+
 class PushConsumer(object):
     def __init__(self, group_id, orderly=False, message_model=MessageModel.CLUSTERING):
         self._handle = dll.CreatePushConsumer(_to_bytes(group_id))
@@ -357,15 +449,15 @@ class PushConsumer(object):
         self.set_message_model(message_model)
         self._callback_refs = []
 
-    def __del__(self):
-        if self._handle is not None:
-            ffi_check(dll.DestroyPushConsumer(self._handle))
-
     def __enter__(self):
         self.start()
 
     def __exit__(self, type, value, traceback):
         self.shutdown()
+
+    def destroy(self):
+        if self._handle is not None:
+            ffi_check(dll.DestroyPushConsumer(self._handle))
 
     def set_message_model(self, model):
         ffi_check(dll.SetPushConsumerMessageModel(self._handle, model))
@@ -397,15 +489,18 @@ class PushConsumer(object):
         def _on_message(consumer, msg):
             exc = None
             try:
-                callback(RecvMessage(msg))
-            except Exception as e:
+                consume_result = callback(RecvMessage(msg))
+                if consume_result != ConsumeStatus.CONSUME_SUCCESS and consume_result != ConsumeStatus.RECONSUME_LATER:
+                    raise ValueError('Consume status error, please use ConsumeStatus as response')
+                return consume_result
+            except BaseException as e:
                 exc = e
-                return _CConsumeStatus.RECONSUME_LATER.value
+                return ConsumeStatus.RECONSUME_LATER
             finally:
                 if exc:
                     raise exc
 
-            return _CConsumeStatus.CONSUME_SUCCESS.value
+            return ConsumeStatus.CONSUME_SUCCESS
 
         ffi_check(dll.Subscribe(self._handle, _to_bytes(topic), _to_bytes(expression)))
         self._register_callback(_on_message)
@@ -434,96 +529,3 @@ class PushConsumer(object):
 
     def set_instance_name(self, name):
         ffi_check(dll.SetPushConsumerInstanceName(self._handle, _to_bytes(name)))
-
-
-class PullConsumer(object):
-    offset_table = {}
-    def __init__(self, group_id):
-        self._handle = dll.CreatePullConsumer(_to_bytes(group_id))
-        if self._handle is None:
-            raise NullPointerException('CreatePullConsumer returned null pointer')
-
-    def __del__(self):
-        if self._handle is not None:
-            ffi_check(dll.DestroyPullConsumer(self._handle))
-
-    def __enter__(self):
-        self.start()
-
-    def __exit__(self, type, value, traceback):
-        self.shutdown()
-
-    def start(self):
-        ffi_check(dll.StartPullConsumer(self._handle))
-
-    def shutdown(self):
-        ffi_check(dll.ShutdownPullConsumer(self._handle))
-
-    def set_group(self, group_id):
-        ffi_check(dll.SetPullConsumerGroupID(self._handle, _to_bytes(group_id)))
-
-    def set_namesrv_addr(self, addr):
-        ffi_check(dll.SetPullConsumerNameServerAddress(self._handle, _to_bytes(addr)))
-
-    def set_namesrv_domain(self, domain):
-        ffi_check(dll.SetPullConsumerNameServerDomain(self._handle, _to_bytes(domain)))
-
-    def set_session_credentials(self, access_key, access_secret, channel):
-        ffi_check(dll.SetPullConsumerSessionCredentials(
-            self._handle,
-            _to_bytes(access_key),
-            _to_bytes(access_secret),
-            _to_bytes(channel)
-        ))
-
-    def _get_mq_key(self, mq):
-        key = '%s@%s' % (mq.topic, mq.queueId)
-        return key
-
-    def get_message_queue_offset(self, mq):
-        offset = self.offset_table.get(self._get_mq_key(mq), 0)
-        return offset
-
-    def set_message_queue_offset(self, mq, offset):
-        self.offset_table[self._get_mq_key(mq)] = offset
-
-    def pull(self, topic, expression='*', max_num=32):
-        message_queue = POINTER(_CMessageQueue)()
-        queue_size = c_int()
-        ffi_check(dll.FetchSubscriptionMessageQueues(
-            self._handle,
-            _to_bytes(topic),
-            ctypes.pointer(message_queue),
-            ctypes.pointer(queue_size)
-        ))
-        for i in range(int(queue_size.value)):
-            mq = message_queue[i]
-            tmp_offset = ctypes.c_longlong(self.get_message_queue_offset(mq))
-
-            has_new_msg = True
-            while has_new_msg:
-                pull_res = dll.Pull(
-                    self._handle,
-                    ctypes.pointer(mq),
-                    _to_bytes(expression),
-                    tmp_offset,
-                    max_num,
-                )
-
-                if pull_res.pullStatus != _CPullStatus.BROKER_TIMEOUT:
-                    tmp_offset = pull_res.nextBeginOffset
-                    self.set_message_queue_offset(mq, tmp_offset)
-
-                if pull_res.pullStatus == _CPullStatus.FOUND:
-                    for i in range(int(pull_res.size)):
-                        yield RecvMessage(pull_res.msgFoundList[i])
-                elif pull_res.pullStatus == _CPullStatus.NO_MATCHED_MSG:
-                    pass
-                elif pull_res.pullStatus == _CPullStatus.NO_NEW_MSG:
-                    has_new_msg = False
-                elif pull_res.pullStatus == _CPullStatus.OFFSET_ILLEGAL:
-                    pass
-                else:
-                    pass
-                dll.ReleasePullResult(pull_res)  # NOTE: No need to check ffi return code here
-        ffi_check(dll.ReleaseSubscriptionMessageQueue(message_queue))

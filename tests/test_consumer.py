@@ -21,7 +21,7 @@ import threading
 
 import pytest
 
-from rocketmq.client import Message, SendStatus
+from rocketmq.client import Message, SendStatus, ConsumeStatus
 from rocketmq.exceptions import PushConsumerStartFailed
 from rocketmq.consts import MessageProperty
 
@@ -33,13 +33,6 @@ def _send_test_msg(producer):
     msg.set_body('XXXX')
     ret = producer.send_sync(msg)
     assert ret.status == SendStatus.OK
-
-
-def test_pull_consumer(producer, pull_consumer):
-    _send_test_msg(producer)
-    time.sleep(5)
-    msg = next(pull_consumer.pull('test'))
-    assert msg.body.decode('utf-8') == 'XXXX'
 
 
 def test_push_consumer_no_subscription_start_fail(push_consumer):
@@ -57,8 +50,10 @@ def test_push_consumer(producer, push_consumer):
         try:
             assert msg.body.decode('utf-8') == 'XXXX'
             assert msg[MessageProperty.KEYS]
+            return ConsumeStatus.CONSUME_SUCCESS
         except Exception as exc:
             errors.append(exc)
+            return ConsumeStatus.RECONSUME_LATER
 
     push_consumer.subscribe('test', on_message)
     push_consumer.start()

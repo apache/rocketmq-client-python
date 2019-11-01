@@ -19,7 +19,7 @@
 import time
 import threading
 
-from rocketmq.client import Message, SendStatus
+from rocketmq.client import Message, SendStatus, TransactionMQProducer, TransactionStatus
 
 
 def test_producer_send_sync(producer):
@@ -78,6 +78,15 @@ def test_producer_send_oneway_orderly(producer):
     producer.send_oneway_orderly(msg, 1)
 
 
+def test_producer_send_orderly_with_sharding_key(producer):
+    msg = Message('test')
+    msg.set_keys('sharding_message')
+    msg.set_tags('sharding')
+    msg.set_body('sharding message')
+    ret = producer.send_orderly_with_sharding_key(msg, 'order1')
+    assert ret.status == SendStatus.OK
+
+
 def test_producer_send_orderly(producer):
     msg = Message('test')
     msg.set_keys('send_orderly')
@@ -87,19 +96,28 @@ def test_producer_send_orderly(producer):
     assert ret.status == SendStatus.OK
 
 
-def test_producer_send_batch(producer):
-    batch_msg = []
-    msg = Message('test')
-    msg.set_keys('send_batch_1')
-    msg.set_tags('XXX1')
-    msg.set_body('XXXX1')
-    batch_msg.append(msg)
+def test_transaction_producer():
+    stop_event = threading.Event()
+    msgId = None
 
-    msg = Message('test')
-    msg.set_keys('send_batch_2')
-    msg.set_tags('XXX2')
-    msg.set_body('XXXX2')
-    batch_msg.append(msg)
+    def on_local_execute(msg, user_args):
+        msgId = msg.id.decode('utf-8')
+        return TransactionStatus.UNKNOWN
 
-    ret = producer.send_batch(batch_msg)
-    assert ret.status == SendStatus.OK
+    def on_check(msg):
+        stop_event.set()
+        assert msg.id.decode('utf-8') == msgId
+        return TransactionStatus.COMMIT
+
+    producer = TransactionMQProducer('transactionTestGroup', on_check)
+    producer.set_namesrv_addr('127.0.0.1:9876')
+    producer.start()
+    msg = Message('test')
+    msg.set_keys('send_orderly')
+    msg.set_tags('XXX')
+    msg.set_body('XXXX')
+    producer.send_message_in_transaction(msg, on_local_execute)
+    while not stop_event.is_set():
+        time.sleep(2)
+    producer.shutdown()
+

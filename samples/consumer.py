@@ -16,22 +16,23 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import pytest
-from rocketmq.client import Producer, PushConsumer
 
+from rocketmq.client import PushConsumer, ConsumeStatus
+import time
 
-@pytest.fixture(scope='session')
-def producer():
-    prod = Producer('testGroup', True)
-    prod.set_namesrv_addr('127.0.0.1:9876')
-    prod.start()
-    yield prod
-    prod.shutdown()
+def callback(msg):
+    print(msg.id, msg.body)
+    return ConsumeStatus.CONSUME_SUCCESS
 
-
-@pytest.fixture(scope='function')
-def push_consumer():
-    consumer = PushConsumer('testGroup')
+def start_consume_message():
+    consumer = PushConsumer('consumer_group')
     consumer.set_namesrv_addr('127.0.0.1:9876')
-    yield consumer
-    consumer.shutdown()
+    consumer.subscribe(topic, callback)
+    print ('start consume message')
+    consumer.start()
+
+    while True:
+        time.sleep(3600)
+
+if __name__ == '__main__':
+    start_consume_message()

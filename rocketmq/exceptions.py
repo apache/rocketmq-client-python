@@ -96,21 +96,7 @@ class ConsumerException(RocketMQException):
     pass
 
 
-@_register(_CStatus.PUSHCONSUMER_START_FAILED)
+@_register(_CStatus.PUSH_CONSUMER_START_FAILED)
 class PushConsumerStartFailed(ConsumerException):
     pass
 
-
-@_register(_CStatus.PULLCONSUMER_START_FAILED)
-class PullConsumerStartFailed(ConsumerException):
-    pass
-
-
-@_register(_CStatus.PULLCONSUMER_FETCH_MQ_FAILED)
-class PullConsumerFetchMQFailed(ConsumerException):
-    pass
-
-
-@_register(_CStatus.PULLCONSUMER_FETCH_MQ_FAILED)
-class PullConsumerFetchMessageFailed(ConsumerException):
-    pass
