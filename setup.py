@@ -24,7 +24,6 @@ import struct
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 
-
 readme = 'README.md'
 with open(readme) as f:
     long_description = f.read()
@@ -33,6 +32,7 @@ with open(readme) as f:
 cmdclass = {}
 try:
     from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+
 
     class bdist_wheel(_bdist_wheel):
         def finalize_options(self):
@@ -45,10 +45,13 @@ try:
             python, abi, plat = _bdist_wheel.get_tag(self)
             python, abi = 'py2.py3', 'none'
             return python, abi, plat
+
+
     cmdclass['bdist_wheel'] = bdist_wheel
 
 except ImportError:
     pass
+
 
 class InstallPlatlib(install):
     def finalize_options(self):
@@ -56,16 +59,17 @@ class InstallPlatlib(install):
         # force platlib
         self.install_lib = self.install_platlib
 
+
 cmdclass['install'] = InstallPlatlib
 
 setup(
     name='rocketmq',
-    version='0.4.3',
-    author='messense',
-    author_email='messense@icloud.com',
+    version='0.5.0',
+    author='apache.rocketmq',
+    author_email='dev@rocketmq.apache.org',
     packages=find_packages(exclude=('tests', 'tests.*')),
     keywords='rocketmq',
-    description='RocketMQ Python client',
+    description='RocketMQ Python Client',
     long_description=long_description,
     long_description_content_type='text/markdown',
     include_package_data=True,
