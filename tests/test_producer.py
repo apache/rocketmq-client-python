@@ -42,14 +42,6 @@ def test_producer_send_oneway(producer):
     producer.send_oneway(msg)
 
 
-def test_producer_send_oneway_orderly(producer):
-    msg = Message('test')
-    msg.set_keys('send_oneway_orderly')
-    msg.set_tags('XXX')
-    msg.set_body('XXXX')
-    producer.send_oneway_orderly(msg, 1)
-
-
 def test_producer_send_orderly_with_sharding_key(producer):
     msg = Message('test')
     msg.set_keys('sharding_message')
