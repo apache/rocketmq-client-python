@@ -18,8 +18,11 @@
 # under the License.
 import time
 import threading
+import sys
 
 from rocketmq.client import Message, SendStatus, TransactionMQProducer, TransactionStatus
+
+PY_VERSION = sys.version_info[0]
 
 
 def test_producer_send_sync(producer):
@@ -109,11 +112,11 @@ def test_transaction_producer():
         assert msg.id.decode('utf-8') == msgId
         return TransactionStatus.COMMIT
 
-    producer = TransactionMQProducer('transactionTestGroup', on_check)
+    producer = TransactionMQProducer('transactionTestGroup' + str(PY_VERSION), on_check)
     producer.set_namesrv_addr('127.0.0.1:9876')
     producer.start()
     msg = Message('test')
-    msg.set_keys('send_orderly')
+    msg.set_keys('transaction')
     msg.set_tags('XXX')
     msg.set_body('XXXX')
     producer.send_message_in_transaction(msg, on_local_execute)
