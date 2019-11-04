@@ -1,7 +1,7 @@
 # rocketmq-python
 
-[![Build Status](https://travis-ci.com/messense/rocketmq-python.svg?branch=master)](https://travis-ci.com/messense/rocketmq-python)
-[![codecov](https://codecov.io/gh/messense/rocketmq-python/branch/master/graph/badge.svg)](https://codecov.io/gh/messense/rocketmq-python)
+[![Build Status](https://travis-ci.org/apache/rocketmq-client-python.svg?branch=master)](https://travis-ci.org/apache/rocketmq-client-python)
+[![codecov](https://codecov.io/gh/apache/rocketmq-client-python/branch/ctypes/graph/badge.svg)](https://codecov.io/gh/apache/rocketmq-client-python/branch/ctypes)
 [![PyPI](https://img.shields.io/pypi/v/rocketmq.svg)](https://pypi.org/project/rocketmq)
 
 RocketMQ Python client, based on [rocketmq-client-cpp](https://github.com/apache/rocketmq-client-cpp), supports Linux and macOS
