@@ -202,19 +202,10 @@ dll.SetProducerMaxMessageSize.argtypes = [c_void_p, c_int]
 dll.SetProducerMaxMessageSize.restype = _CStatus
 dll.SendMessageSync.argtypes = [c_void_p, c_void_p, POINTER(_CSendResult)]
 dll.SendMessageSync.restype = _CStatus
-dll.SendMessageAsync.argtypes = [c_void_p, c_void_p, SEND_SUCCESS_CALLBACK, SEND_EXCEPTION_CALLBACK]
-dll.SendMessageAsync.restype = _CStatus
 dll.SendMessageOneway.argtypes = [c_void_p, c_void_p]
 dll.SendMessageOneway.restype = _CStatus
-dll.SendMessageOrderly.argtypes = [c_void_p, c_void_p, QUEUE_SELECTOR_CALLBACK, c_void_p, c_int, POINTER(_CSendResult)]
-dll.SendMessageOrderly.restype = _CStatus
-dll.SendMessageOnewayOrderly.argtypes = [c_void_p, c_void_p, QUEUE_SELECTOR_CALLBACK, c_void_p]
-dll.SendMessageOnewayOrderly.restype = _CStatus
 dll.SendBatchMessage.argtypes = [c_void_p, c_void_p, POINTER(_CSendResult)]
 dll.SendBatchMessage.restype = _CStatus
-
-dll.SendMessageOrderlyByShardingKey.argtypes = [c_void_p, c_void_p, c_char_p, POINTER(_CSendResult)]
-dll.SendMessageOrderlyByShardingKey.restype = _CStatus
 
 dll.SendMessageOrderlyByShardingKey.argtypes = [c_void_p, c_void_p, c_char_p, POINTER(_CSendResult)]
 dll.SendMessageOrderlyByShardingKey.restype = _CStatus

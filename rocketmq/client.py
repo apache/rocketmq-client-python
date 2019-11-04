@@ -189,11 +189,6 @@ class RecvMessage(object):
         )
 
 
-def hashing_queue_selector(mq_size, msg, arg):
-    arg_int = ctypes.cast(arg, POINTER(c_int))
-    return arg_int[0] % mq_size
-
-
 class Producer(object):
     def __init__(self, group_id, orderly=False, timeout=None, compress_level=None, max_message_size=None):
         if orderly:
@@ -231,33 +226,6 @@ class Producer(object):
 
     def send_oneway(self, msg):
         ffi_check(dll.SendMessageOneway(self._handle, msg))
-
-    def send_orderly(self, msg, arg,
-                     retry_times=3,
-                     queue_selector=hashing_queue_selector):
-        def _select_queue(mq_size, cmsg, user_arg):
-            msg = RecvMessage(cmsg)
-            return queue_selector(mq_size, msg, user_arg)
-
-        cres = _CSendResult()
-        queue_select_callback = QUEUE_SELECTOR_CALLBACK(_select_queue)
-        self._callback_refs.append(queue_select_callback)
-        try:
-            ffi_check(dll.SendMessageOrderly(
-                self._handle,
-                msg,
-                queue_select_callback,
-                ctypes.cast(ctypes.pointer(ctypes.c_int(arg)), c_void_p),
-                retry_times,
-                ctypes.pointer(cres)
-            ))
-        finally:
-            self._callback_refs.remove(queue_select_callback)
-        return SendResult(
-            SendStatus(cres.sendStatus),
-            cres.msgId.decode('utf-8'),
-            cres.offset
-        )
 
     def send_orderly_with_sharding_key(self, msg, sharding_key):
         cres = _CSendResult()
