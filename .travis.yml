@@ -8,8 +8,8 @@ matrix:
       services:
         - docker
       script:
-        - docker pull messense/rocketmq-client-python-ci:latest
-        - docker run --rm -it -v `pwd`:/io -w /io messense/rocketmq-client-python-ci:latest /io/manylinux.sh
+        - docker pull apacherocketmq/rocketmq-client-python-ci:latest
+        - docker run --rm -it -v `pwd`:/io -w /io apacherocketmq/rocketmq-client-python-ci:latest /io/manylinux.sh
         - ls dist/
         - sudo rm -rf build *.egg-info
         - pip install -Ur dev-requirements.txt
@@ -24,8 +24,8 @@ matrix:
       services:
         - docker
       script:
-        - docker pull messense/rocketmq-client-python-ci:latest
-        - docker run --rm -it -v `pwd`:/io -w /io messense/rocketmq-client-python-ci:latest /io/manylinux.sh
+        - docker pull apacherocketmq/rocketmq-client-python-ci:latest
+        - docker run --rm -it -v `pwd`:/io -w /io apacherocketmq/rocketmq-client-python-ci:latest /io/manylinux.sh
         - ls dist/
         - sudo rm -rf build *.egg-info
         - pip install -Ur dev-requirements.txt
