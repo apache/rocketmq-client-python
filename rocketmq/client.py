@@ -229,40 +229,6 @@ class Producer(object):
             cres.offset
         )
 
-    def send_async(self, msg, success_callback, exception_callback):
-        from .ffi import SEND_SUCCESS_CALLBACK, SEND_EXCEPTION_CALLBACK
-
-        def _on_success(csendres):
-            try:
-                if success_callback:
-                    csendres = csendres.contents
-                    sendres = SendResult(
-                        SendStatus(csendres.sendStatus),
-                        csendres.msgId.decode('utf-8'),
-                        csendres.offset
-                    )
-                    success_callback(sendres)
-            finally:
-                self._callback_refs.remove(on_success)
-
-        def _on_exception(cexc):
-            try:
-                try:
-                    raise ProducerSendAsyncFailed(cexc.msg, cexc.error, cexc.file, cexc.line, cexc.type)
-                except ProducerSendAsyncFailed as exc:
-                    if exception_callback:
-                        exception_callback(exc)
-                    else:
-                        raise exc
-            finally:
-                self._callback_refs.remove(on_exception)
-
-        on_success = SEND_SUCCESS_CALLBACK(_on_success)
-        self._callback_refs.append(on_success)
-        on_exception = SEND_EXCEPTION_CALLBACK(_on_exception)
-        self._callback_refs.append(on_exception)
-        ffi_check(dll.SendMessageAsync(self._handle, msg, on_success, on_exception))
-
     def send_oneway(self, msg):
         ffi_check(dll.SendMessageOneway(self._handle, msg))
 
