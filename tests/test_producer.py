@@ -51,15 +51,6 @@ def test_producer_send_orderly_with_sharding_key(producer):
     assert ret.status == SendStatus.OK
 
 
-def test_producer_send_orderly(producer):
-    msg = Message('test')
-    msg.set_keys('send_orderly')
-    msg.set_tags('XXX')
-    msg.set_body('XXXX')
-    ret = producer.send_orderly(msg, 1)
-    assert ret.status == SendStatus.OK
-
-
 def test_transaction_producer():
     stop_event = threading.Event()
     msg_body = 'XXXX'
