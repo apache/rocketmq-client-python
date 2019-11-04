@@ -51,7 +51,7 @@ def test_push_consumer(producer, push_consumer):
         stop_event.set()
         try:
             assert msg.body.decode('utf-8') == 'XXXX'
-            assert msg[MessageProperty.KEYS]
+            assert msg.keys.decode('utf-8') == 'XXX'
             return ConsumeStatus.CONSUME_SUCCESS
         except Exception as exc:
             errors.append(exc)
@@ -74,14 +74,15 @@ def test_push_consumer_reconsume_later(producer, push_consumer):
     def on_message(msg):
         if not raised_exc.is_set():
             raised_exc.set()
-            raise Exception('Should reconsume later')
+            return ConsumeStatus.RECONSUME_LATER
 
         stop_event.set()
         try:
             assert msg.body.decode('utf-8') == 'XXXX'
-            assert msg[MessageProperty.KEYS]
+            assert msg.keys.decode('utf-8') == 'XXX'
         except Exception as exc:
             errors.append(exc)
+            return ConsumeStatus.CONSUME_SUCCESS
 
     push_consumer.subscribe('test', on_message)
     push_consumer.start()
