@@ -34,37 +34,6 @@ def test_producer_send_sync(producer):
     assert ret.status == SendStatus.OK
 
 
-def test_producer_send_async(producer):
-    stop_event = threading.Event()
-    errors = []
-
-    def on_success(result):
-        stop_event.set()
-        if not result.msg_id:
-            errors.append(AssertionError('Producer send_async failed'))
-
-    def on_exception(exc):
-        stop_event.set()
-        errors.append(exc)
-
-    msg = Message('test')
-    msg.set_keys('send_async')
-    msg.set_tags('XXX')
-    msg.set_body('XXXX')
-    producer.send_async(msg, on_success, on_exception)
-
-    max_wait = 10
-    wait_count = 0
-    while not stop_event.is_set():
-        if wait_count >= max_wait:
-            stop_event.set()
-            raise Exception('test timed-out')
-        time.sleep(1)
-        wait_count += 1
-    if errors:
-        raise errors[0]
-
-
 def test_producer_send_oneway(producer):
     msg = Message('test')
     msg.set_keys('send_oneway')
@@ -73,29 +42,12 @@ def test_producer_send_oneway(producer):
     producer.send_oneway(msg)
 
 
-def test_producer_send_oneway_orderly(producer):
-    msg = Message('test')
-    msg.set_keys('send_oneway_orderly')
-    msg.set_tags('XXX')
-    msg.set_body('XXXX')
-    producer.send_oneway_orderly(msg, 1)
-
-
 def test_producer_send_orderly_with_sharding_key(producer):
     msg = Message('test')
     msg.set_keys('sharding_message')
     msg.set_tags('sharding')
     msg.set_body('sharding message')
     ret = producer.send_orderly_with_sharding_key(msg, 'order1')
-    assert ret.status == SendStatus.OK
-
-
-def test_producer_send_orderly(producer):
-    msg = Message('test')
-    msg.set_keys('send_orderly')
-    msg.set_tags('XXX')
-    msg.set_body('XXXX')
-    ret = producer.send_orderly(msg, 1)
     assert ret.status == SendStatus.OK
 
 

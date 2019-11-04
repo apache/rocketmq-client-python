@@ -189,11 +189,6 @@ class RecvMessage(object):
         )
 
 
-def hashing_queue_selector(mq_size, msg, arg):
-    arg_int = ctypes.cast(arg, POINTER(c_int))
-    return arg_int[0] % mq_size
-
-
 class Producer(object):
     def __init__(self, group_id, orderly=False, timeout=None, compress_level=None, max_message_size=None):
         if orderly:
@@ -229,86 +224,8 @@ class Producer(object):
             cres.offset
         )
 
-    def send_async(self, msg, success_callback, exception_callback):
-        from .ffi import SEND_SUCCESS_CALLBACK, SEND_EXCEPTION_CALLBACK
-
-        def _on_success(csendres):
-            try:
-                if success_callback:
-                    csendres = csendres.contents
-                    sendres = SendResult(
-                        SendStatus(csendres.sendStatus),
-                        csendres.msgId.decode('utf-8'),
-                        csendres.offset
-                    )
-                    success_callback(sendres)
-            finally:
-                self._callback_refs.remove(on_success)
-
-        def _on_exception(cexc):
-            try:
-                try:
-                    raise ProducerSendAsyncFailed(cexc.msg, cexc.error, cexc.file, cexc.line, cexc.type)
-                except ProducerSendAsyncFailed as exc:
-                    if exception_callback:
-                        exception_callback(exc)
-                    else:
-                        raise exc
-            finally:
-                self._callback_refs.remove(on_exception)
-
-        on_success = SEND_SUCCESS_CALLBACK(_on_success)
-        self._callback_refs.append(on_success)
-        on_exception = SEND_EXCEPTION_CALLBACK(_on_exception)
-        self._callback_refs.append(on_exception)
-        ffi_check(dll.SendMessageAsync(self._handle, msg, on_success, on_exception))
-
     def send_oneway(self, msg):
         ffi_check(dll.SendMessageOneway(self._handle, msg))
-
-    def send_oneway_orderly(self, msg, arg, queue_selector=hashing_queue_selector):
-        def _select_queue(mq_size, cmsg, user_arg):
-            msg = RecvMessage(cmsg)
-            return queue_selector(mq_size, msg, user_arg)
-
-        queue_select_callback = QUEUE_SELECTOR_CALLBACK(_select_queue)
-        self._callback_refs.append(queue_select_callback)
-        try:
-            ffi_check(dll.SendMessageOnewayOrderly(
-                self._handle,
-                msg,
-                queue_select_callback,
-                ctypes.cast(ctypes.pointer(ctypes.c_int(arg)), c_void_p),
-            ))
-        finally:
-            self._callback_refs.remove(queue_select_callback)
-
-    def send_orderly(self, msg, arg,
-                     retry_times=3,
-                     queue_selector=hashing_queue_selector):
-        def _select_queue(mq_size, cmsg, user_arg):
-            msg = RecvMessage(cmsg)
-            return queue_selector(mq_size, msg, user_arg)
-
-        cres = _CSendResult()
-        queue_select_callback = QUEUE_SELECTOR_CALLBACK(_select_queue)
-        self._callback_refs.append(queue_select_callback)
-        try:
-            ffi_check(dll.SendMessageOrderly(
-                self._handle,
-                msg,
-                queue_select_callback,
-                ctypes.cast(ctypes.pointer(ctypes.c_int(arg)), c_void_p),
-                retry_times,
-                ctypes.pointer(cres)
-            ))
-        finally:
-            self._callback_refs.remove(queue_select_callback)
-        return SendResult(
-            SendStatus(cres.sendStatus),
-            cres.msgId.decode('utf-8'),
-            cres.offset
-        )
 
     def send_orderly_with_sharding_key(self, msg, sharding_key):
         cres = _CSendResult()
