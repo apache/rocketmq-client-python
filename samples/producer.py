@@ -40,7 +40,7 @@ def send_message_sync(count):
     for n in range(count):
         msg = create_message()
         ret = producer.send_sync(msg)
-        print ('send message status: ' + str(ret.status) + ' msgId: ' + ret.msg_id + ' offset: ' + str(ret.offset))
+        print ('send message status: ' + str(ret.status) + ' msgId: ' + ret.msg_id)
     print ('send sync message done')
     producer.shutdown()
     producer.destroy()
