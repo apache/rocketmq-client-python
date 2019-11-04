@@ -101,15 +101,14 @@ def test_producer_send_orderly(producer):
 
 def test_transaction_producer():
     stop_event = threading.Event()
-    msgId = None
+    msg_body = 'XXXX'
 
     def on_local_execute(msg, user_args):
-        msgId = msg.id.decode('utf-8')
         return TransactionStatus.UNKNOWN
 
     def on_check(msg):
         stop_event.set()
-        assert msg.id.decode('utf-8') == msgId
+        assert msg.body.decode('utf-8') == msg_body
         return TransactionStatus.COMMIT
 
     producer = TransactionMQProducer('transactionTestGroup' + str(PY_VERSION), on_check)
@@ -118,7 +117,7 @@ def test_transaction_producer():
     msg = Message('test')
     msg.set_keys('transaction')
     msg.set_tags('XXX')
-    msg.set_body('XXXX')
+    msg.set_body(msg_body)
     producer.send_message_in_transaction(msg, on_local_execute)
     while not stop_event.is_set():
         time.sleep(2)
