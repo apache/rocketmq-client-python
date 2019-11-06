@@ -1,15 +1,15 @@
-# rocketmq-python
+# rocketmq-client-python
 
 [![Build Status](https://travis-ci.org/apache/rocketmq-client-python.svg?branch=master)](https://travis-ci.org/apache/rocketmq-client-python)
 [![codecov](https://codecov.io/gh/apache/rocketmq-client-python/branch/ctypes/graph/badge.svg)](https://codecov.io/gh/apache/rocketmq-client-python/branch/ctypes)
-[![PyPI](https://img.shields.io/pypi/v/rocketmq.svg)](https://pypi.org/project/rocketmq)
+[![PyPI](https://img.shields.io/pypi/v/rocketmq-client-python.svg)](https://pypi.org/project/rocketmq-client-python)
 
 RocketMQ Python client, based on [rocketmq-client-cpp](https://github.com/apache/rocketmq-client-cpp), supports Linux and macOS
 
 ## Installation
 
 ```bash
-pip install rocketmq
+pip install rocketmq-client-python
 ```
 
 ## Usage
@@ -20,10 +20,7 @@ pip install rocketmq
 from rocketmq.client import Producer, Message
 
 producer = Producer('PID-XXX')
-producer.set_namesrv_domain('http://onsaddr-internet.aliyun.com/rocketmq/nsaddr4client-internet')
-# For ip and port name server address, use `set_namesrv_addr` method, for example:
-# producer.set_namesrv_addr('127.0.0.1:9887')
-producer.set_session_credentials('XXX', 'XXXX', 'ALIYUN') # No need to call this function if you don't use Aliyun.
+producer.set_namesrv_addr('127.0.0.1:9876')
 producer.start()
 
 msg = Message('YOUR-TOPIC')
@@ -48,10 +45,7 @@ def callback(msg):
 
 
 consumer = PushConsumer('CID_XXX')
-consumer.set_namesrv_domain('http://onsaddr-internet.aliyun.com/rocketmq/nsaddr4client-internet')
-# For ip and port name server address, use `set_namesrv_addr` method, for example:
-# consumer.set_namesrv_addr('127.0.0.1:9887')
-consumer.set_session_credentials('XXX', 'XXXX', 'ALIYUN') # No need to call this function if you don't use Aliyun.
+consumer.set_namesrv_addr('127.0.0.1:9876')
 consumer.subscribe('YOUR-TOPIC', callback)
 consumer.start()
 
