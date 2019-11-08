@@ -29,13 +29,14 @@ def create_message():
     msg = Message(topic)
     msg.set_keys('XXX')
     msg.set_tags('XXX')
+    msg.set_property('property', 'test')
     msg.set_body('message body')
     return msg
 
 
 def send_message_sync(count):
     producer = Producer(gid)
-    producer.set_namesrv_addr(name_srv)
+    producer.set_name_server_address(name_srv)
     producer.start()
     for n in range(count):
         msg = create_message()
@@ -43,35 +44,33 @@ def send_message_sync(count):
         print ('send message status: ' + str(ret.status) + ' msgId: ' + ret.msg_id)
     print ('send sync message done')
     producer.shutdown()
-    producer.destroy()
 
 
 def send_orderly_with_sharding_key(count):
     producer = Producer(gid, True)
-    producer.set_namesrv_addr(name_srv)
+    producer.set_name_server_address(name_srv)
     producer.start()
     for n in range(count):
         msg = create_message()
         ret = producer.send_orderly_with_sharding_key(msg, 'orderId')
         print ('send message status: ' + str(ret.status) + ' msgId: ' + ret.msg_id)
-    print ('send sync message done')
+    print ('send sync order message done')
     producer.shutdown()
-    producer.destroy()
 
 
 def check_callback(msg):
-    print ('check: ' + msg.id.decode('utf-8'))
+    print ('check: ' + msg.body.decode('utf-8'))
     return TransactionStatus.COMMIT
 
 
 def local_execute(msg, user_args):
-    print ('local:   ' + msg.id.decode('utf-8'))
+    print ('local:   ' + msg.body.decode('utf-8'))
     return TransactionStatus.UNKNOWN
 
 
 def send_transaction_message(count):
     producer = TransactionMQProducer(gid, check_callback)
-    producer.set_namesrv_addr(name_srv)
+    producer.set_name_server_address(name_srv)
     producer.start()
     for n in range(count):
         msg = create_message()
@@ -81,8 +80,6 @@ def send_transaction_message(count):
 
     while True:
         time.sleep(3600)
-    producer.shutdown()
-    producer.destroy()
 
 
 if __name__ == '__main__':

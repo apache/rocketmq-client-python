@@ -23,22 +23,24 @@ from rocketmq.client import Producer, PushConsumer
 @pytest.fixture(scope='session')
 def producer():
     prod = Producer('producer_group')
-    prod.set_namesrv_addr('127.0.0.1:9876')
+    prod.set_name_server_address('127.0.0.1:9876')
     prod.start()
     yield prod
     prod.shutdown()
+
 
 @pytest.fixture(scope='session')
 def orderly_producer():
     prod = Producer('orderly_producer_group', True)
-    prod.set_namesrv_addr('127.0.0.1:9876')
+    prod.set_name_server_address('127.0.0.1:9876')
     prod.start()
     yield prod
     prod.shutdown()
 
+
 @pytest.fixture(scope='function')
 def push_consumer():
     consumer = PushConsumer('push_consumer_group')
-    consumer.set_namesrv_addr('127.0.0.1:9876')
+    consumer.set_name_server_address('127.0.0.1:9876')
     yield consumer
     consumer.shutdown()

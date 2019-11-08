@@ -18,21 +18,19 @@
 # under the License.
 import sys
 import ctypes
-from ctypes import c_void_p, c_int, POINTER
 from enum import IntEnum
 from collections import namedtuple
 
 from .ffi import (
-    dll, _CSendResult, MSG_CALLBACK_FUNC, MessageModel, QUEUE_SELECTOR_CALLBACK, TRANSACTION_CHECK_CALLBACK,
+    dll, _CSendResult, MSG_CALLBACK_FUNC, MessageModel, TRANSACTION_CHECK_CALLBACK,
     LOCAL_TRANSACTION_EXECUTE_CALLBACK
 )
 from .exceptions import (
-    ffi_check, PushConsumerStartFailed, ProducerSendAsyncFailed,
-    NullPointerException,
+    ffi_check, NullPointerException,
 )
 from .consts import MessageProperty
 
-__all__ = ['SendStatus', 'Message', 'RecvMessage', 'Producer', 'PushConsumer', 'TransactionMQProducer',
+__all__ = ['SendStatus', 'Message', 'ReceivedMessage', 'Producer', 'PushConsumer', 'TransactionMQProducer',
            'TransactionStatus', 'ConsumeStatus']
 
 PY2 = sys.version_info[0] == 2
@@ -74,10 +72,6 @@ class Message(object):
     def __init__(self, topic):
         self._handle = dll.CreateMessage(_to_bytes(topic))
 
-    def destroy(self):
-        if self._handle is not None:
-            ffi_check(dll.DestroyMessage(self._handle))
-
     def set_keys(self, keys):
         ffi_check(dll.SetMessageKeys(self._handle, _to_bytes(keys)))
 
@@ -103,10 +97,10 @@ def maybe_decode(val):
         return val.decode('utf-8')
     elif isinstance(val, text_type):
         return val
-    raise TypeError('Expects string types, got %s', type(val))
+    raise TypeError('Expects string types, but got %s', type(val))
 
 
-class RecvMessage(object):
+class ReceivedMessage(object):
     def __init__(self, handle):
         self._handle = handle
 
@@ -182,7 +176,7 @@ class RecvMessage(object):
         return self.body
 
     def __repr__(self):
-        return '<RecvMessage topic={} id={} body={}>'.format(
+        return '<ReceivedMessage topic={} id={} body={}>'.format(
             repr(self.topic),
             repr(self.id),
             repr(self.body),
@@ -196,7 +190,7 @@ class Producer(object):
         else:
             self._handle = dll.CreateProducer(_to_bytes(group_id))
         if self._handle is None:
-            raise NullPointerException('CreateProducer returned null pointer')
+            raise NullPointerException('Returned null pointer when create Producer')
         if timeout is not None:
             self.set_timeout(timeout)
         if compress_level is not None:
@@ -208,41 +202,38 @@ class Producer(object):
     def __enter__(self):
         self.start()
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exec_type, value, traceback):
         self.shutdown()
 
-    def destroy(self):
-        if self._handle is not None:
-            ffi_check(dll.DestroyProducer(self._handle))
-
     def send_sync(self, msg):
-        cres = _CSendResult()
-        ffi_check(dll.SendMessageSync(self._handle, msg, ctypes.pointer(cres)))
+        c_result = _CSendResult()
+        ffi_check(dll.SendMessageSync(self._handle, msg, ctypes.pointer(c_result)))
         return SendResult(
-            SendStatus(cres.sendStatus),
-            cres.msgId.decode('utf-8'),
-            cres.offset
+            SendStatus(c_result.sendStatus),
+            c_result.msgId.decode('utf-8'),
+            c_result.offset
         )
 
     def send_oneway(self, msg):
         ffi_check(dll.SendMessageOneway(self._handle, msg))
 
     def send_orderly_with_sharding_key(self, msg, sharding_key):
-        cres = _CSendResult()
-        ffi_check(dll.SendMessageOrderlyByShardingKey(self._handle, msg, _to_bytes(sharding_key), ctypes.pointer(cres)))
+        c_result = _CSendResult()
+        ffi_check(
+            dll.SendMessageOrderlyByShardingKey(self._handle, msg, _to_bytes(sharding_key), ctypes.pointer(c_result)))
         return SendResult(
-            SendStatus(cres.sendStatus),
-            cres.msgId.decode('utf-8'),
-            cres.offset
+            SendStatus(c_result.sendStatus),
+            c_result.msgId.decode('utf-8'),
+            c_result.offset
         )
 
     def set_group(self, group_name):
         ffi_check(dll.SetProducerGroupName(self._handle, _to_bytes(group_name)))
 
-    def set_namesrv_addr(self, addr):
+    def set_name_server_address(self, addr):
         ffi_check(dll.SetProducerNameServerAddress(self._handle, _to_bytes(addr)))
 
-    def set_namesrv_domain(self, domain):
+    def set_name_server_domain(self, domain):
         ffi_check(dll.SetProducerNameServerDomain(self._handle, _to_bytes(domain)))
 
     def set_session_credentials(self, access_key, access_secret, channel):
@@ -272,16 +263,18 @@ class Producer(object):
 class TransactionMQProducer(Producer):
     def __init__(self, group_id, checker_callback, user_args=None, timeout=None, compress_level=None,
                  max_message_size=None):
+        super(TransactionMQProducer, self).__init__(group_id, timeout, compress_level, max_message_size)
         self._callback_refs = []
 
-        def _on_check(producer, cmsg, user_args):
+        def _on_check(producer, c_message, user_data):
             exc = None
             try:
-                py_message = RecvMessage(cmsg)
+                py_message = ReceivedMessage(c_message)
                 check_result = checker_callback(py_message)
                 if check_result != TransactionStatus.UNKNOWN and check_result != TransactionStatus.COMMIT \
                         and check_result != TransactionStatus.ROLLBACK:
-                    raise ValueError('Check transaction status error, please use TransactionStatus as response')
+                    raise ValueError(
+                        'Check transaction status error, please use enum \'TransactionStatus\' as response')
                 return check_result
             except BaseException as e:
                 exc = e
@@ -289,14 +282,13 @@ class TransactionMQProducer(Producer):
             finally:
                 if exc:
                     raise exc
-            return ConsumeStatus.UNKNOWN
 
         transaction_checker_callback = TRANSACTION_CHECK_CALLBACK(_on_check)
         self._callback_refs.append(transaction_checker_callback)
 
         self._handle = dll.CreateTransactionProducer(_to_bytes(group_id), transaction_checker_callback, user_args)
         if self._handle is None:
-            raise NullPointerException('Create TransactionProducer returned null pointer')
+            raise NullPointerException('Returned null pointer when create transaction producer')
         if timeout is not None:
             self.set_timeout(timeout)
         if compress_level is not None:
@@ -307,26 +299,26 @@ class TransactionMQProducer(Producer):
     def __enter__(self):
         self.start()
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exec_type, value, traceback):
         self.shutdown()
 
-    def destroy(self):
-        if self._handle is not None:
-            ffi_check(dll.DestroyProducer(self._handle))
+    def set_name_server_address(self, addr):
+        ffi_check(dll.SetProducerNameServerAddress(self._handle, _to_bytes(addr)))
 
     def start(self):
         ffi_check(dll.StartProducer(self._handle))
 
     def send_message_in_transaction(self, message, local_execute, user_args=None):
 
-        def _on_local_execute(producer, cmsg, usr_args):
+        def _on_local_execute(producer, c_message, usr_args):
             exc = None
             try:
-                py_message = RecvMessage(cmsg)
+                py_message = ReceivedMessage(c_message)
                 local_result = local_execute(py_message, usr_args)
                 if local_result != TransactionStatus.UNKNOWN and local_result != TransactionStatus.COMMIT \
                         and local_result != TransactionStatus.ROLLBACK:
-                    raise ValueError('Local transaction status error, please use TransactionStatus as response')
+                    raise ValueError(
+                        'Local transaction status error, please use enum \'TransactionStatus\' as response')
                 return local_result
             except BaseException as e:
                 exc = e
@@ -334,7 +326,6 @@ class TransactionMQProducer(Producer):
             finally:
                 if exc:
                     raise exc
-            return ConsumeStatus.UNKNOWN
 
         local_execute_callback = LOCAL_TRANSACTION_EXECUTE_CALLBACK(_on_local_execute)
         self._callback_refs.append(local_execute_callback)
@@ -361,7 +352,7 @@ class PushConsumer(object):
     def __init__(self, group_id, orderly=False, message_model=MessageModel.CLUSTERING):
         self._handle = dll.CreatePushConsumer(_to_bytes(group_id))
         if self._handle is None:
-            raise NullPointerException('CreatePushConsumer returned null pointer')
+            raise NullPointerException('Returned null pointer when create PushConsumer')
         self._orderly = orderly
         self.set_message_model(message_model)
         self._callback_refs = []
@@ -369,12 +360,8 @@ class PushConsumer(object):
     def __enter__(self):
         self.start()
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exec_type, value, traceback):
         self.shutdown()
-
-    def destroy(self):
-        if self._handle is not None:
-            ffi_check(dll.DestroyPushConsumer(self._handle))
 
     def set_message_model(self, model):
         ffi_check(dll.SetPushConsumerMessageModel(self._handle, model))
@@ -388,10 +375,10 @@ class PushConsumer(object):
     def set_group(self, group_id):
         ffi_check(dll.SetPushConsumerGroupID(self._handle, _to_bytes(group_id)))
 
-    def set_namesrv_addr(self, addr):
+    def set_name_server_address(self, addr):
         ffi_check(dll.SetPushConsumerNameServerAddress(self._handle, _to_bytes(addr)))
 
-    def set_namesrv_domain(self, domain):
+    def set_name_server_domain(self, domain):
         ffi_check(dll.SetPushConsumerNameServerDomain(self._handle, _to_bytes(domain)))
 
     def set_session_credentials(self, access_key, access_secret, channel):
@@ -406,9 +393,9 @@ class PushConsumer(object):
         def _on_message(consumer, msg):
             exc = None
             try:
-                consume_result = callback(RecvMessage(msg))
+                consume_result = callback(ReceivedMessage(msg))
                 if consume_result != ConsumeStatus.CONSUME_SUCCESS and consume_result != ConsumeStatus.RECONSUME_LATER:
-                    raise ValueError('Consume status error, please use ConsumeStatus as response')
+                    raise ValueError('Consume status error, please use enum \'ConsumeStatus\' as response')
                 return consume_result
             except BaseException as e:
                 exc = e
@@ -416,8 +403,6 @@ class PushConsumer(object):
             finally:
                 if exc:
                     raise exc
-
-            return ConsumeStatus.CONSUME_SUCCESS
 
         ffi_check(dll.Subscribe(self._handle, _to_bytes(topic), _to_bytes(expression)))
         self._register_callback(_on_message)

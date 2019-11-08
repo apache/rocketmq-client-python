@@ -23,7 +23,6 @@ import pytest
 
 from rocketmq.client import Message, SendStatus, ConsumeStatus, PushConsumer
 from rocketmq.exceptions import PushConsumerStartFailed
-from rocketmq.consts import MessageProperty
 
 
 def _send_test_msg(producer):
@@ -31,13 +30,14 @@ def _send_test_msg(producer):
     msg.set_keys('XXX')
     msg.set_tags('XXX')
     msg.set_body('XXXX')
+    msg.set_property('property', 'test')
     ret = producer.send_sync(msg)
     assert ret.status == SendStatus.OK
 
 
 def test_push_consumer_no_subscription_start_fail():
     consumer = PushConsumer('testGroup')
-    consumer.set_namesrv_addr("127.0.0.1:9876")
+    consumer.set_name_server_address("127.0.0.1:9876")
     with pytest.raises(PushConsumerStartFailed):
         consumer.start()
 
@@ -52,6 +52,7 @@ def test_push_consumer(producer, push_consumer):
         try:
             assert msg.body.decode('utf-8') == 'XXXX'
             assert msg.keys.decode('utf-8') == 'XXX'
+            assert msg.get_property('property').decode('utf-8') == 'test'
             return ConsumeStatus.CONSUME_SUCCESS
         except Exception as exc:
             errors.append(exc)

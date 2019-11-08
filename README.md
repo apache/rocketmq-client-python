@@ -20,7 +20,7 @@ pip install rocketmq-client-python
 from rocketmq.client import Producer, Message
 
 producer = Producer('PID-XXX')
-producer.set_namesrv_addr('127.0.0.1:9876')
+producer.set_name_server_address('127.0.0.1:9876')
 producer.start()
 
 msg = Message('YOUR-TOPIC')
@@ -45,7 +45,7 @@ def callback(msg):
 
 
 consumer = PushConsumer('CID_XXX')
-consumer.set_namesrv_addr('127.0.0.1:9876')
+consumer.set_name_server_address('127.0.0.1:9876')
 consumer.subscribe('YOUR-TOPIC', callback)
 consumer.start()
 
