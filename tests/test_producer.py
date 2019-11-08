@@ -47,6 +47,7 @@ def test_producer_send_orderly_with_sharding_key(orderly_producer):
     msg.set_keys('sharding_message')
     msg.set_tags('sharding')
     msg.set_body('sharding message')
+    msg.set_property('property', 'test')
     ret = orderly_producer.send_orderly_with_sharding_key(msg, 'order1')
     assert ret.status == SendStatus.OK
 

@@ -21,13 +21,13 @@ from rocketmq.client import PushConsumer, ConsumeStatus
 import time
 
 def callback(msg):
-    print(msg.id, msg.body)
+    print(msg.id, msg.body,  msg.get_property('property'))
     return ConsumeStatus.CONSUME_SUCCESS
 
 def start_consume_message():
     consumer = PushConsumer('consumer_group')
-    consumer.set_namesrv_addr('127.0.0.1:9876')
-    consumer.subscribe(topic, callback)
+    consumer.set_name_server_address('127.0.0.1:9876')
+    consumer.subscribe('TopicTest', callback)
     print ('start consume message')
     consumer.start()
 
