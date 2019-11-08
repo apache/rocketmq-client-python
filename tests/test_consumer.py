@@ -37,7 +37,7 @@ def _send_test_msg(producer):
 
 def test_push_consumer_no_subscription_start_fail():
     consumer = PushConsumer('testGroup')
-    consumer.set_namesrv_addr("127.0.0.1:9876")
+    consumer.set_name_server_address("127.0.0.1:9876")
     with pytest.raises(PushConsumerStartFailed):
         consumer.start()
 

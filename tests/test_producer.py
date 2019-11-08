@@ -65,7 +65,7 @@ def test_transaction_producer():
         return TransactionStatus.COMMIT
 
     producer = TransactionMQProducer('transactionTestGroup' + str(PY_VERSION), on_check)
-    producer.set_namesrv_addr('127.0.0.1:9876')
+    producer.set_name_server_address('127.0.0.1:9876')
     producer.start()
     msg = Message('test')
     msg.set_keys('transaction')

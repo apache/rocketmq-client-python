@@ -38,9 +38,9 @@ def ffi_check(status_code):
     msg = dll.GetLatestErrorMessage()
     if msg is not None:
         msg = msg.decode('utf-8')
-        # msg = re.sub('<.*?(rocketmq-client-cpp/)(.*)>', '\\1\\2', msg)
-        # if msg.startswith('msg: '):
-        #     msg = msg[5:]
+        msg = re.sub('<.*?(rocketmq-client-cpp/)(.*)>', '\\1\\2', msg)
+        if msg.startswith('msg: '):
+            msg = msg[5:]
     raise exc_cls(msg)
 
 

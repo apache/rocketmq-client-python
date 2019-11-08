@@ -202,7 +202,7 @@ class Producer(object):
     def __enter__(self):
         self.start()
 
-    def __exit__(self, type1, value, traceback):
+    def __exit__(self, exec_type, value, traceback):
         self.shutdown()
 
     def send_sync(self, msg):
@@ -299,7 +299,7 @@ class TransactionMQProducer(Producer):
     def __enter__(self):
         self.start()
 
-    def __exit__(self, type1, value, traceback):
+    def __exit__(self, exec_type, value, traceback):
         self.shutdown()
 
     def set_name_server_address(self, addr):
@@ -360,7 +360,7 @@ class PushConsumer(object):
     def __enter__(self):
         self.start()
 
-    def __exit__(self, type1, value, traceback):
+    def __exit__(self, exec_type, value, traceback):
         self.shutdown()
 
     def set_message_model(self, model):
