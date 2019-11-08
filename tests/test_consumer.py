@@ -52,7 +52,7 @@ def test_push_consumer(producer, push_consumer):
         try:
             assert msg.body.decode('utf-8') == 'XXXX'
             assert msg.keys.decode('utf-8') == 'XXX'
-            assert msg.get_property('property') == 'test'
+            assert msg.get_property('property').decode('utf-8') == 'test'
             return ConsumeStatus.CONSUME_SUCCESS
         except Exception as exc:
             errors.append(exc)
