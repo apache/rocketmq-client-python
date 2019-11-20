@@ -36,20 +36,9 @@
        ```
     4. [librocketmq](https://github.com/apache/rocketmq-client-cpp), choose one method below:
       
-       - make and install the RocketMQ library manually from [rocketmq-client-cpp](https://github.com/apache/rocketmq-client-cpp)
+       - build from source: [Build and Install](https://github.com/apache/rocketmq-client-cpp/tree/master#build-and-install)
          
-       - quick install, please choose the suitable dynamic library version for your system.
-       ```
-       mkdir rocketmqlib
-       cd rocketmqlib
-       wget https://opensource-rocketmq-client.oss-cn-hangzhou.aliyuncs.com/cpp-client/linux/1.2.2/RHEL7.X/rocketmq-client-cpp.tar.gz
-       tar -xzf rocketmq-client-cpp.tar.gz
-       cd rocketmq-client-cpp
-       sudo cp lib/librocketmq.so lib/librocketmq.a /usr/local/lib/
-       mkdir -p /usr/local/include/rocketmq
-       sudo cp -r include/* /usr/local/include/rocketmq
-       ```
-   
+       - download specific release: [rocketmq-client-cpp](https://www.apache.org/dyn/closer.cgi?path=rocketmq/rocketmq-client-cpp/1.2.4/rocketmq-client-cpp-1.2.4-bin-release.tar.gz) and unzip the package, please choose the right version according to your OS and unzip it, then copy the library files to to your `/usr/local/lib/` directory and copy the head files under `include` path to `/usr/local/include/rocketmq/`. and please make sure your `/usr/local/lib/` directory is under the `LD_LIBRARY_PATH`.
      
 * Make and install module manually
    1. Using Dynamic RocketMQ and boost python libraries are recommended.
@@ -90,13 +79,13 @@
        ```
     4. [librocketmq](https://github.com/apache/rocketmq-client-cpp), choose one method below:
       
-       - make and install the RocketMQ library manually from [rocketmq-client-cpp](https://github.com/apache/rocketmq-client-cpp)
+       - build from source: [Build and Install](https://github.com/apache/rocketmq-client-cpp/tree/master#build-and-install)
          
-       - quick install
+       - quick install: there are no cpp binary release for macos, below script can only be used for dev env.
        ```
        mkdir rocketmqlib
        cd rocketmqlib
-       wget https://opensource-rocketmq-client.oss-cn-hangzhou.aliyuncs.com/cpp-client/mac/1.2.0/librocketmq.tar.gz
+       wget https://opensource-rocketmq-client.oss-cn-hangzhou.aliyuncs.com/cpp-client/mac/1.2.4/librocketmq.tar.gz
        tar -xzf librocketmq.tar.gz
        cp librocketmq.dylib librocketmq.a /usr/local/lib/
        cp -r rocketmq /usr/local/include/
@@ -104,21 +93,12 @@
    
      
 * Make and install module manually
-   1. Using Dynamic RocketMQ and boost python libraries are recommended.
-      ```
+   ```
       - mkdir build && cd build
       - cmake ../ -DBoost_USE_STATIC_LIBS=OFF -DROCKETMQ_USE_STATIC_LIBS=OFF
       - make
       - make install
-      ```
-      
-   2. Also you can using static libraries.
-      ```
-         - mkdir build & cd build
-         - cmake ../ -DBoost_USE_STATIC_LIBS=ON -DROCKETMQ_USE_STATIC_LIBS=ON
-         - make
-         - make install
-      ```
+   ```
 * Check verion
    ```
    strings librocketmqclientpython.so |grep PYTHON_CLIENT_VERSION
