@@ -1,31 +1,60 @@
-## RocketMQ Client Python
-[![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
-[![TravisCI](https://travis-ci.org/apache/rocketmq-client-python.svg?branch=master)](https://travis-ci.org/apache/rocketmq-client-python)
-* RocketMQ Python client is developed on top of [rocketmq-client-cpp](https://github.com/apache/rocketmq-client-cpp), which has been proven robust and widely adopted within Alibaba Group by many business units for more than three years.
+# rocketmq-client-python
 
-----------
-## Quick Start
-* Step-by-step instruction are provided in [RocketMQ Client Python Introduction](https://github.com/apache/rocketmq-client-python/blob/master/doc/Introduction.md).
-* Consult [RocketMQ Quick Start](https://rocketmq.apache.org/docs/quick-start/) to setup rocketmq broker and nameserver.
+[![Build Status](https://travis-ci.org/apache/rocketmq-client-python.svg?branch=master)](https://travis-ci.org/apache/rocketmq-client-python)
+[![codecov](https://codecov.io/gh/apache/rocketmq-client-python/branch/ctypes/graph/badge.svg)](https://codecov.io/gh/apache/rocketmq-client-python/branch/ctypes)
+[![PyPI](https://img.shields.io/pypi/v/rocketmq-client-python.svg)](https://pypi.org/project/rocketmq-client-python)
 
-----------
-## Apache RocketMQ Community
-* [RocketMQ Community Projects](https://github.com/apache/rocketmq-externals)
+RocketMQ Python client, based on [rocketmq-client-cpp](https://github.com/apache/rocketmq-client-cpp), supports Linux and macOS
 
-----------
-## Contact us
-* Mailing Lists: <https://rocketmq.apache.org/about/contact/>
-* Home: <https://rocketmq.apache.org>
-* Docs: <https://rocketmq.apache.org/docs/quick-start/>
-* Issues: <https://github.com/apache/rocketmq-client-python/issues>
-* Ask: <https://stackoverflow.com/questions/tagged/rocketmq>
-* Slack: <https://rocketmq-community.slack.com/>
- 
----------- 
-## How to Contribute
-  Contributions are warmly welcome! Be it trivial cleanup, major new feature or other suggestion. Read this [how to contribute](http://rocketmq.apache.org/docs/how-to-contribute/) guide for more details. 
-   
-   
-----------
+## Installation
+
+```bash
+pip install rocketmq-client-python
+```
+
+## Usage
+
+### Producer
+
+```python
+from rocketmq.client import Producer, Message
+
+producer = Producer('PID-XXX')
+producer.set_name_server_address('127.0.0.1:9876')
+producer.start()
+
+msg = Message('YOUR-TOPIC')
+msg.set_keys('XXX')
+msg.set_tags('XXX')
+msg.set_body('XXXX')
+ret = producer.send_sync(msg)
+print(ret.status, ret.msg_id, ret.offset)
+producer.shutdown()
+```
+
+### PushConsumer
+
+```python
+import time
+
+from rocketmq.client import PushConsumer
+
+
+def callback(msg):
+    print(msg.id, msg.body)
+
+
+consumer = PushConsumer('CID_XXX')
+consumer.set_name_server_address('127.0.0.1:9876')
+consumer.subscribe('YOUR-TOPIC', callback)
+consumer.start()
+
+while True:
+    time.sleep(3600)
+
+consumer.shutdown()
+
+```
+
 ## License
-  [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html) Copyright (C) Apache Software Foundation
+[Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html) Copyright (C) Apache Software Foundation

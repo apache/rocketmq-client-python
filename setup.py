@@ -1,46 +1,91 @@
-# /*
-# * Licensed to the Apache Software Foundation (ASF) under one or more
-# * contributor license agreements.  See the NOTICE file distributed with
-# * this work for additional information regarding copyright ownership.
-# * The ASF licenses this file to You under the Apache License, Version 2.0
-# * (the "License"); you may not use this file except in compliance with
-# * the License.  You may obtain a copy of the License at
-# *
-# *     http://www.apache.org/licenses/LICENSE-2.0
-# *
-# * Unless required by applicable law or agreed to in writing, software
-# * distributed under the License is distributed on an "AS IS" BASIS,
-# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# * See the License for the specific language governing permissions and
-# * limitations under the License.
-# */
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+import os
+import sys
+import struct
 
-from distutils.core import Extension
+from setuptools import setup, find_packages
+from setuptools.command.install import install
 
-from setuptools import setup
+readme = 'README.md'
+with open(readme) as f:
+    long_description = f.read()
 
-BOOST_INCLUDE_PATH = "/usr/local/include/boost"
-PYTHON_INCLUDE_PATH = "/usr/include/python2.7"
-ROCKETMQ_INCLUDE_PATH = "/usr/local/include/rocketmq"
-PYTHON_LIB_DIR = "/usr/lib64"
-BOOST_LIB_DIR = "/usr/local/lib"
-ROCKETMQ_LIB_DIR = "/usr/local/lib"
-NAME = 'librocketmqclientpython'
-setup(name=NAME,
-      version='1.2.0',
-      url="https://github.com/apache/rocketmq-client-python",
-      description="RocketMQ Python client",
-      long_description="RocketMQ Python client is developed on top of rocketmq-client-cpp, which has been proven "
-                       "robust and widely adopted within Alibaba Group by many business units for more than three "
-                       "years.",
-      license="Apache License, Version 2.0",
-      platforms=["linux"],
-      packages=["src"],
-      ext_modules=[Extension(name=NAME
-                             , sources=['src/PythonWrapper.cpp']
-                             , extra_compile_args=[]
-                             , extra_link_args=["-lboost_python", "-lrocketmq"]
-                             , include_dirs=[BOOST_INCLUDE_PATH, ROCKETMQ_INCLUDE_PATH]
-                             , library_dirs=[PYTHON_LIB_DIR, ROCKETMQ_LIB_DIR, BOOST_LIB_DIR]
-                             ), ],
-      )
+# from https://stackoverflow.com/questions/45150304/how-to-force-a-python-wheel-to-be-platform-specific-when-building-it # noqa
+cmdclass = {}
+try:
+    from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+
+
+    class bdist_wheel(_bdist_wheel):
+        def finalize_options(self):
+            _bdist_wheel.finalize_options(self)
+            # Mark us as not a pure python package (we have platform specific C/C++ code)
+            self.root_is_pure = False
+
+        def get_tag(self):
+            # this set's us up to build generic wheels.
+            python, abi, plat = _bdist_wheel.get_tag(self)
+            python, abi = 'py2.py3', 'none'
+            return python, abi, plat
+
+
+    cmdclass['bdist_wheel'] = bdist_wheel
+
+except ImportError:
+    pass
+
+
+class InstallPlatlib(install):
+    def finalize_options(self):
+        install.finalize_options(self)
+        # force platlib
+        self.install_lib = self.install_platlib
+
+
+cmdclass['install'] = InstallPlatlib
+
+setup(
+    name='rocketmq-client-python',
+    version='0.5.0-rc3',
+    author='apache.rocketmq',
+    author_email='dev@rocketmq.apache.org',
+    packages=find_packages(exclude=('tests', 'tests.*')),
+    keywords='rocketmq',
+    description='RocketMQ Python Client',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    include_package_data=True,
+    install_requires=[
+        "enum34; python_version<='3.4'",
+    ],
+    cmdclass=cmdclass,
+    classifiers=[
+        'Operating System :: MacOS',
+        'Operating System :: POSIX',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: Implementation :: CPython',
+    ]
+)
