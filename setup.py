@@ -64,7 +64,7 @@ cmdclass['install'] = InstallPlatlib
 
 setup(
     name='rocketmq-client-python',
-    version='2.0.0',
+    version='2.0.1rc1',
     author='apache.rocketmq',
     author_email='dev@rocketmq.apache.org',
     packages=find_packages(exclude=('tests', 'tests.*')),
