@@ -6,6 +6,27 @@
 [![PyPI](https://img.shields.io/pypi/v/rocketmq-client-python.svg)](https://pypi.org/project/rocketmq-client-python)
 
 RocketMQ Python client, based on [rocketmq-client-cpp](https://github.com/apache/rocketmq-client-cpp), supports Linux and macOS
+## Prerequisites
+
+### Install `librocketmq`
+rocketmq-client-python is a lightweight wrapper around [rocketmq-client-cpp](https://github.com/apache/rocketmq-client-cpp), so you need install 
+`librocketmq` first.
+
+#### include file
+```bash
+git clone https://github.com/apache/rocketmq-client-cpp
+
+# By default, CFLAGS contains `/usr/local/include`
+sudo mkdir -p /usr/local/include/rocketmq/
+sudo cp rocketmq-client-cpp/include/* /usr/local/include/rocketmq
+```
+
+#### binary library
+your could download directly or build manually:
+
+- download specific release: [rocketmq-client-cpp](https://archive.apache.org/dist/rocketmq/rocketmq-client-cpp/1.2.4/rocketmq-client-cpp-1.2.4-bin-release.tar.gz)
+ and unzip the package, please choose the right version according to your OS and unzip it, then copy the library files to to your `LD_LIBRARY_PATH` directory(as default, `/usr/local/lib/` works finely).
+- build from source: [Build and Install](https://github.com/apache/rocketmq-client-cpp/tree/master#build-and-install)
 
 ## Installation
 
