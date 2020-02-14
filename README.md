@@ -38,6 +38,7 @@ download specific release according you OS: [rocketmq-client-cpp-2.0.0](https://
         mkdir /usr/local/include/rocketmq
         cp include/* /usr/local/include/rocketmq
         cp lib/* /usr/local/lib
+        install_name_tool -id "@rpath/librocketmq.dylib" /usr/local/lib/librocketmq.dylib
     ```
 #### Build from source
 you can also build it manually from source according to [Build and Install](https://github.com/apache/rocketmq-client-cpp/tree/master#build-and-install)
