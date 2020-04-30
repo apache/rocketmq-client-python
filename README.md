@@ -72,6 +72,7 @@ producer.shutdown()
 ### PushConsumer
 
 ```python
+from rocketmq.client import PushConsumer, ConsumeStatus
 import time
 
 from rocketmq.client import PushConsumer
@@ -79,6 +80,7 @@ from rocketmq.client import PushConsumer
 
 def callback(msg):
     print(msg.id, msg.body)
+    return ConsumeStatus.CONSUME_SUCCESS
 
 
 consumer = PushConsumer('CID_XXX')
