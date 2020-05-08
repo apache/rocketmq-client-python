@@ -72,10 +72,9 @@ producer.shutdown()
 ### PushConsumer
 
 ```python
-from rocketmq.client import PushConsumer, ConsumeStatus
 import time
 
-from rocketmq.client import PushConsumer
+from rocketmq.client import PushConsumer, ConsumeStatus
 
 
 def callback(msg):
