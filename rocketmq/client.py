@@ -230,6 +230,9 @@ class Producer(object):
     def set_group(self, group_name):
         ffi_check(dll.SetProducerGroupName(self._handle, _to_bytes(group_name)))
 
+    def set_instance_name(self, name):
+        ffi_check(dll.SetProducerInstanceName(self._handle, _to_bytes(name)))
+
     def set_name_server_address(self, addr):
         ffi_check(dll.SetProducerNameServerAddress(self._handle, _to_bytes(addr)))
 
