@@ -71,6 +71,9 @@ def _to_bytes(s):
 class Message(object):
     def __init__(self, topic):
         self._handle = dll.CreateMessage(_to_bytes(topic))
+        
+    def __del__(self):
+        dll.DestroyMessage(self._handle)
 
     def set_keys(self, keys):
         ffi_check(dll.SetMessageKeys(self._handle, _to_bytes(keys)))
