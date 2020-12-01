@@ -16,6 +16,7 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+from concurrent.futures import ThreadPoolExecutor
 import time
 import threading
 import sys
@@ -32,6 +33,16 @@ def test_producer_send_sync(producer):
     msg.set_body('XXXX')
     ret = producer.send_sync(msg)
     assert ret.status == SendStatus.OK
+
+
+def test_producer_send_sync_multi_thread(producer):
+    executor = ThreadPoolExecutor(max_workers=5)
+    futures = []
+    for _ in range(5):
+        futures.append(executor.submit(test_producer_send_sync, producer))
+
+    for future in futures:
+        _ret = future.result()
 
 
 def test_producer_send_oneway(producer):

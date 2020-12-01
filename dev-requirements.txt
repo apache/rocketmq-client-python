@@ -17,3 +17,4 @@ pytest
 pytest-timeout
 pytest-faulthandler
 pytest-cov
+futures; python_version < '3'
