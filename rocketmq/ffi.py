@@ -66,6 +66,26 @@ class _CStatus(CtypesEnum):
     NOT_SUPPORT_NOW = -1
 
 
+class _CPullStatus(CtypesEnum):
+    E_FOUND = 0
+    E_NO_NEW_MSG = 1
+    E_NO_MATCHED_MSG = 2
+    E_OFFSET_ILLEGAL = 3
+    E_BROKER_TIMEOUT = 4
+
+
+class _CPullResult(Structure):
+    _fields_ = [
+        ("pullStatus", c_int),
+        ("nextBeginOffset", c_longlong),
+        ("minOffset", c_longlong),
+        ("maxOffset", c_longlong),
+        ("msgFoundList", POINTER(c_void_p)),
+        ("size", c_int),
+        ("pData", c_void_p),
+    ]
+
+
 class _CLogLevel(CtypesEnum):
     FATAL = 1
     ERROR = 2
@@ -265,3 +285,48 @@ dll.SetPushConsumerMessageModel.restype = _CStatus
 # Misc
 dll.GetLatestErrorMessage.argtypes = []
 dll.GetLatestErrorMessage.restype = c_char_p
+
+
+# Pull Consumer
+dll.CreatePullConsumer.argtypes = [c_char_p]
+dll.CreatePullConsumer.restype = c_void_p
+dll.DestroyPullConsumer.argtypes = [c_void_p]
+dll.DestroyPullConsumer.restype = _CStatus
+dll.StartPullConsumer.argtypes = [c_void_p]
+dll.StartPullConsumer.restype = _CStatus
+dll.ShutdownPullConsumer.argtypes = [c_void_p]
+dll.ShutdownPullConsumer.restype = _CStatus
+dll.SetPullConsumerGroupID.argtypes = [c_void_p, c_char_p]
+dll.SetPullConsumerGroupID.restype = _CStatus
+dll.GetPullConsumerGroupID.argtypes = [c_void_p]
+dll.GetPullConsumerGroupID.restype = c_char_p
+dll.SetPullConsumerNameServerAddress.argtypes = [c_void_p, c_char_p]
+dll.SetPullConsumerNameServerAddress.restype = _CStatus
+dll.SetPullConsumerNameServerDomain.argtypes = [c_void_p, c_char_p]
+dll.SetPullConsumerNameServerDomain.restype = _CStatus
+dll.SetPullConsumerSessionCredentials.argtypes = [
+    c_void_p,
+    c_char_p,
+    c_char_p,
+    c_char_p,
+]
+dll.SetPullConsumerSessionCredentials.restype = _CStatus
+dll.SetPullConsumerLogPath.argtypes = [c_void_p, c_char_p]
+dll.SetPullConsumerLogPath.restype = _CStatus
+dll.SetPullConsumerLogFileNumAndSize.argtypes = [c_void_p, c_int, c_long]
+dll.SetPullConsumerLogFileNumAndSize.restype = _CStatus
+dll.SetPullConsumerLogLevel.argtypes = [c_void_p, _CLogLevel]
+dll.SetPullConsumerLogLevel.restype = _CStatus
+dll.FetchSubscriptionMessageQueues.argtypes = [
+    c_void_p,
+    c_char_p,
+    POINTER(POINTER(_CMessageQueue)),
+    POINTER(c_int),
+]
+dll.FetchSubscriptionMessageQueues.restype = _CStatus
+dll.ReleaseSubscriptionMessageQueue.argtypes = [POINTER(_CMessageQueue)]
+dll.ReleaseSubscriptionMessageQueue.restype = _CStatus
+dll.Pull.argtypes = [c_void_p, POINTER(_CMessageQueue), c_char_p, c_longlong, c_int]
+dll.Pull.restype = _CPullResult
+dll.ReleasePullResult.argtypes = [_CPullResult]
+dll.ReleasePullResult.restype = _CStatus

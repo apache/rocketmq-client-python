@@ -23,7 +23,7 @@ from collections import namedtuple
 
 from .ffi import (
     dll, _CSendResult, MSG_CALLBACK_FUNC, MessageModel, TRANSACTION_CHECK_CALLBACK,
-    LOCAL_TRANSACTION_EXECUTE_CALLBACK
+    LOCAL_TRANSACTION_EXECUTE_CALLBACK, _CPullStatus, _CMessageQueue
 )
 from .exceptions import (
     ffi_check, NullPointerException,
@@ -437,3 +437,92 @@ class PushConsumer(object):
 
     def set_instance_name(self, name):
         ffi_check(dll.SetPushConsumerInstanceName(self._handle, _to_bytes(name)))
+
+
+class PullConsumer(object):
+    def __init__(self, group_id):
+        self._handle = dll.CreatePullConsumer(_to_bytes(group_id))
+        if self._handle is None:
+            raise NullPointerException('CreatePullConsumer returned null pointer')
+
+    def __del__(self):
+        if self._handle is not None:
+            self.shutdown()
+            ffi_check(dll.DestroyPullConsumer(self._handle))
+
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, type, value, traceback):
+        self.shutdown()
+
+    def start(self):
+        ffi_check(dll.StartPullConsumer(self._handle))
+
+    def shutdown(self):
+        ffi_check(dll.ShutdownPullConsumer(self._handle))
+
+    def set_group(self, group_id):
+        ffi_check(dll.SetPullConsumerGroupID(self._handle, _to_bytes(group_id)))
+
+    def set_name_server_address(self, addr):
+        ffi_check(dll.SetPullConsumerNameServerAddress(self._handle, _to_bytes(addr)))
+
+    def set_namesrv_domain(self, domain):
+        ffi_check(dll.SetPullConsumerNameServerDomain(self._handle, _to_bytes(domain)))
+
+    def set_session_credentials(self, access_key, access_secret, channel):
+        ffi_check(dll.SetPullConsumerSessionCredentials(
+            self._handle,
+            _to_bytes(access_key),
+            _to_bytes(access_secret),
+            _to_bytes(channel)
+        ))
+
+    # NOTE: you have to implement offset store by yourself
+    def get_message_queue_offset(self, mq):
+        raise NotImplementedError()
+
+    def set_message_queue_offset(self, mq, offset):
+        raise NotImplementedError()
+
+    def pull(self, topic, expression='*', max_num=32):
+        message_queues = ctypes.POINTER(_CMessageQueue)()
+        queue_size = ctypes.c_int()
+        ffi_check(dll.FetchSubscriptionMessageQueues(
+            self._handle,
+            _to_bytes(topic),
+            ctypes.pointer(message_queues),
+            ctypes.pointer(queue_size)
+        ))
+        for i in range(int(queue_size.value)):
+            mq = message_queues[i]
+            tmp_offset = ctypes.c_longlong(self.get_message_queue_offset(mq))
+
+            has_new_msg = True
+            while has_new_msg:
+                pull_res = dll.Pull(
+                    self._handle,
+                    ctypes.pointer(mq),
+                    _to_bytes(expression),
+                    tmp_offset,
+                    max_num,
+                )
+
+                if pull_res.pullStatus != _CPullStatus.E_BROKER_TIMEOUT:
+                    tmp_offset = pull_res.nextBeginOffset
+                    self.set_message_queue_offset(mq, tmp_offset)
+
+                if pull_res.pullStatus == _CPullStatus.E_FOUND:
+                    for i in range(int(pull_res.size)):
+                        yield ReceivedMessage(pull_res.msgFoundList[i])
+                elif pull_res.pullStatus == _CPullStatus.E_NO_MATCHED_MSG:
+                    pass
+                elif pull_res.pullStatus == _CPullStatus.E_NO_NEW_MSG:
+                    has_new_msg = False
+                elif pull_res.pullStatus == _CPullStatus.E_OFFSET_ILLEGAL:
+                    pass
+                else:
+                    pass
+                dll.ReleasePullResult(pull_res)
+        ffi_check(dll.ReleaseSubscriptionMessageQueue(message_queues))
