@@ -94,5 +94,35 @@ consumer.shutdown()
 
 ```
 
+### PullConsumer
+
+```python
+from rocketmq.client import PullConsumer
+
+
+class MyPullConsumer(PullConsumer):
+    offset_table = {}
+
+    def _get_mq_key(self, mq):
+        key = '%s@%s' % (mq.topic, mq.queueId)
+        return key
+
+    def get_message_queue_offset(self, mq) -> int:
+        offset = self.offset_table.get(self._get_mq_key(mq), 0)
+        return offset
+
+    def set_message_queue_offset(self, mq, offset):
+        self.offset_table[self._get_mq_key(mq)] = offset
+
+
+
+consumer = MyPullConsumer('CID_XXX')
+consumer.set_name_server_address('127.0.0.1:9876')
+with consumer:
+    for msg in consumer.pull('YOUR-TOPIC'):
+        print(msg)
+
+```
+
 ## License
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html) Copyright (C) Apache Software Foundation
