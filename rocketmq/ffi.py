@@ -81,6 +81,11 @@ class MessageModel(CtypesEnum):
     CLUSTERING = 1
 
 
+class TraceModel(CtypesEnum):
+    OPEN = 0
+    CLOSE = 1
+
+
 class _CSendResult(Structure):
     _fields_ = [
         ('sendStatus', c_int),
@@ -200,6 +205,8 @@ dll.SetProducerCompressLevel.argtypes = [c_void_p, c_int]
 dll.SetProducerCompressLevel.restype = _CStatus
 dll.SetProducerMaxMessageSize.argtypes = [c_void_p, c_int]
 dll.SetProducerMaxMessageSize.restype = _CStatus
+dll.SetProducerMessageTrace.argtypes = [c_void_p, TraceModel]
+dll.SetProducerMessageTrace.restype = _CStatus
 dll.SendMessageSync.argtypes = [c_void_p, c_void_p, POINTER(_CSendResult)]
 dll.SendMessageSync.restype = _CStatus
 dll.SendMessageOneway.argtypes = [c_void_p, c_void_p]
@@ -261,6 +268,9 @@ dll.SetPushConsumerLogLevel.argtypes = [c_void_p, _CLogLevel]
 dll.SetPushConsumerLogLevel.restype = _CStatus
 dll.SetPushConsumerMessageModel.argtypes = [c_void_p, MessageModel]
 dll.SetPushConsumerMessageModel.restype = _CStatus
+dll.SetPushConsumerLogLevel.restype = _CStatus
+dll.SetPushConsumerMessageTrace.argtypes = [c_void_p, TraceModel]
+dll.SetPushConsumerMessageTrace.restype = _CStatus
 
 # Misc
 dll.GetLatestErrorMessage.argtypes = []

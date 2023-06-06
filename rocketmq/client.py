@@ -23,7 +23,7 @@ from collections import namedtuple
 
 from .ffi import (
     dll, _CSendResult, MSG_CALLBACK_FUNC, MessageModel, TRANSACTION_CHECK_CALLBACK,
-    LOCAL_TRANSACTION_EXECUTE_CALLBACK
+    LOCAL_TRANSACTION_EXECUTE_CALLBACK, TraceModel
 )
 from .exceptions import (
     ffi_check, NullPointerException,
@@ -259,6 +259,9 @@ class Producer(object):
     def set_max_message_size(self, max_size):
         ffi_check(dll.SetProducerMaxMessageSize(self._handle, max_size))
 
+    def set_message_trace(self, message_trace):
+        ffi_check(dll.SetProducerMessageTrace(self._handle, message_trace and TraceModel.OPEN or TraceModel.CLOSE))
+
     def start(self):
         ffi_check(dll.StartProducer(self._handle))
 
@@ -310,6 +313,9 @@ class TransactionMQProducer(Producer):
 
     def set_name_server_address(self, addr):
         ffi_check(dll.SetProducerNameServerAddress(self._handle, _to_bytes(addr)))
+
+    def set_message_trace(self, message_trace):
+        ffi_check(dll.SetProducerMessageTrace(self._handle, message_trace and TraceModel.OPEN or TraceModel.CLOSE))
 
     def start(self):
         ffi_check(dll.StartProducer(self._handle))
@@ -437,3 +443,6 @@ class PushConsumer(object):
 
     def set_instance_name(self, name):
         ffi_check(dll.SetPushConsumerInstanceName(self._handle, _to_bytes(name)))
+
+    def set_message_trace(self, message_trace):
+        ffi_check(dll.SetPushConsumerMessageTrace(self._handle, message_trace and TraceModel.OPEN or TraceModel.CLOSE))
