@@ -18,6 +18,7 @@
 # under the License.
 import sys
 import ctypes
+import time
 from enum import IntEnum
 from collections import namedtuple
 
@@ -201,6 +202,7 @@ class Producer(object):
         if max_message_size is not None:
             self.set_max_message_size(max_message_size)
         self._callback_refs = []
+        self.instance_name = None
 
     def __enter__(self):
         self.start()
@@ -234,6 +236,7 @@ class Producer(object):
         ffi_check(dll.SetProducerGroupName(self._handle, _to_bytes(group_name)))
 
     def set_instance_name(self, name):
+        self.instance_name = name
         ffi_check(dll.SetProducerInstanceName(self._handle, _to_bytes(name)))
 
     def set_name_server_address(self, addr):
@@ -263,6 +266,8 @@ class Producer(object):
         ffi_check(dll.SetProducerMessageTrace(self._handle, message_trace and TraceModel.OPEN or TraceModel.CLOSE))
 
     def start(self):
+        if self.instance_name == None:
+            self.set_instance_name(f'DEFAULT#{time.time_ns()}')
         ffi_check(dll.StartProducer(self._handle))
 
     def shutdown(self):
@@ -318,6 +323,8 @@ class TransactionMQProducer(Producer):
         ffi_check(dll.SetProducerMessageTrace(self._handle, message_trace and TraceModel.OPEN or TraceModel.CLOSE))
 
     def start(self):
+        if self.instance_name == None:
+            self.set_instance_name(f'DEFAULT#{time.time_ns()}')
         ffi_check(dll.StartProducer(self._handle))
 
     def send_message_in_transaction(self, message, local_execute, user_args=None):
@@ -368,6 +375,7 @@ class PushConsumer(object):
         self._orderly = orderly
         self.set_message_model(message_model)
         self._callback_refs = []
+        self.instance_name = None
 
     def __enter__(self):
         self.start()
@@ -379,6 +387,8 @@ class PushConsumer(object):
         ffi_check(dll.SetPushConsumerMessageModel(self._handle, model))
 
     def start(self):
+        if self.instance_name == None:
+            self.set_instance_name(f'DEFAULT#{time.time_ns()}')
         ffi_check(dll.StartPushConsumer(self._handle))
 
     def shutdown(self):
@@ -442,6 +452,7 @@ class PushConsumer(object):
         ffi_check(dll.SetPushConsumerMessageBatchMaxSize(self._handle, max_size))
 
     def set_instance_name(self, name):
+        self.instance_name = name
         ffi_check(dll.SetPushConsumerInstanceName(self._handle, _to_bytes(name)))
 
     def set_message_trace(self, message_trace):
