@@ -207,6 +207,13 @@ dll.SetProducerMaxMessageSize.argtypes = [c_void_p, c_int]
 dll.SetProducerMaxMessageSize.restype = _CStatus
 dll.SetProducerMessageTrace.argtypes = [c_void_p, TraceModel]
 dll.SetProducerMessageTrace.restype = _CStatus
+try:
+    dll.SetProducerSsl.argtypes = [c_void_p, c_int]
+    dll.SetProducerSsl.restype = _CStatus
+    dll.SetProducerSslPropertyFile.argtypes = [c_void_p, c_char_p]
+    dll.SetProducerSslPropertyFile.restype = _CStatus
+except AttributeError:
+    pass
 dll.SendMessageSync.argtypes = [c_void_p, c_void_p, POINTER(_CSendResult)]
 dll.SendMessageSync.restype = _CStatus
 dll.SendMessageOneway.argtypes = [c_void_p, c_void_p]
@@ -271,6 +278,13 @@ dll.SetPushConsumerMessageModel.restype = _CStatus
 dll.SetPushConsumerLogLevel.restype = _CStatus
 dll.SetPushConsumerMessageTrace.argtypes = [c_void_p, TraceModel]
 dll.SetPushConsumerMessageTrace.restype = _CStatus
+try:
+    dll.SetPushConsumerSsl.argtypes = [c_void_p, c_int]
+    dll.SetPushConsumerSsl.restype = _CStatus
+    dll.SetPushConsumerSslPropertyFile.argtypes = [c_void_p, c_char_p]
+    dll.SetPushConsumerSslPropertyFile.restype = _CStatus
+except AttributeError:
+    pass
 
 # Misc
 dll.GetLatestErrorMessage.argtypes = []

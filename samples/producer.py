@@ -115,6 +115,23 @@ def send_transaction_message(count):
         time.sleep(3600)
 
 
+def send_message_with_ssl(count):
+    producer = Producer(gid)
+    producer.set_name_server_address(name_srv)
+    producer.set_ssl_enable(True)
+    producer.set_ssl_property_file("/etc/rocketmq/tls.properties")
+    producer.start()
+    for n in range(count):
+        msg = create_message()
+    producer.start()
+    for n in range(count):
+        msg = create_message()
+        ret = producer.send_sync(msg)
+        print ('send message status: ' + str(ret.status) + ' msgId: ' + ret.msg_id)
+    print ('send sync message done')
+    producer.shutdown()
+
+
 if __name__ == '__main__':
     send_message_sync(10)
 

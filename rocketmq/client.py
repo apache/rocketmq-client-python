@@ -262,6 +262,13 @@ class Producer(object):
     def set_message_trace(self, message_trace):
         ffi_check(dll.SetProducerMessageTrace(self._handle, message_trace and TraceModel.OPEN or TraceModel.CLOSE))
 
+    def set_ssl_enable(self, enable):
+        ssl_enable_code = 1 if enable else 0
+        ffi_check(dll.SetProducerSsl(self._handle, ssl_enable_code))
+
+    def set_ssl_property_file(self, file_path):
+        ffi_check(dll.SetProducerSslPropertyFile(self._handle, _to_bytes(file_path)))
+
     def start(self):
         ffi_check(dll.StartProducer(self._handle))
 
@@ -400,6 +407,13 @@ class PushConsumer(object):
             _to_bytes(access_secret),
             _to_bytes(channel)
         ))
+
+    def set_ssl_enable(self, enable):
+        ssl_enable_code = 1 if enable else 0
+        ffi_check(dll.SetPushConsumerSsl(self._handle, ssl_enable_code))
+
+    def set_ssl_property_file(self, file_path):
+        ffi_check(dll.SetPushConsumerSslPropertyFile(self._handle, _to_bytes(file_path)))
 
     def subscribe(self, topic, callback, expression='*'):
         def _on_message(consumer, msg):

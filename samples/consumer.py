@@ -27,7 +27,9 @@ def callback(msg):
 def start_consume_message():
     consumer = PushConsumer('consumer_group')
     consumer.set_name_server_address('127.0.0.1:9876')
-    consumer.subscribe('TopicTest', callback)
+    consumer.subscribe('BenchmarkTest', callback)
+    # consumer.set_ssl_enable(True)
+    # consumer.set_ssl_property_file("/etc/rocketmq/tls.properties")
     print ('start consume message')
     consumer.start()
 
