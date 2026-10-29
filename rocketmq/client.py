@@ -279,7 +279,6 @@ class Producer(object):
 class TransactionMQProducer(Producer):
     def __init__(self, group_id, checker_callback, user_args=None, timeout=None, compress_level=None,
                  max_message_size=None):
-        super(TransactionMQProducer, self).__init__(group_id, timeout, compress_level, max_message_size)
         self._callback_refs = []
 
         def _on_check(producer, c_message, user_data):
